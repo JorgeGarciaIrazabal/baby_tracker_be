@@ -14,8 +14,21 @@ def read_root():
 @app.post("/")
 async def google_action(request: Request):
     print("IN GOOGLE ACTION")
-    print(f" my body {await request.body()}")
     print(f" my body {await request.json()}")
+    return {
+        "expectUserResponse": False,
+        "finalResponse": {
+            "richResponse": {
+                "items": [
+                    {
+                        "simpleResponse": {
+                            "textToSpeech": "Good bye"
+                        }
+                    }
+                ]
+            }
+        }
+    }
 
 
 @app.get("/items/{item_id}")
