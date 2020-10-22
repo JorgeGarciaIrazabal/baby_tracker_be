@@ -16,15 +16,11 @@ async def google_action(request: Request):
     print("IN GOOGLE ACTION")
     print(f" my body {await request.json()}")
     return {
-        "fulfillmentText": "Text response",
-        "fulfillmentMessages": [
-            {
-                "text": {
-                    "text": ["Text response"]
-                }
-            }
-        ],
-        "source": "Text response"
+        "fulfillmentText": "response text",
+        "fulfillmentMessages": [{"simpleResponses": {"simpleResponses": [{
+            "textToSpeech": "response text",
+            "displayText": "response text"
+        }]}}]
     }
 
 
