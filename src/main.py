@@ -17,17 +17,6 @@ async def google_action(request: Request):
     print(f" my body {await request.json()}")
     return {
         "expectUserResponse": False,
-        "finalResponse": {
-            "richResponse": {
-                "items": [
-                    {
-                        "simpleResponse": {
-                            "textToSpeech": "Good bye"
-                        }
-                    }
-                ]
-            }
-        }
     }
 
 
