@@ -1,7 +1,7 @@
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 app = FastAPI()
 
@@ -9,6 +9,13 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
+
+
+@app.post("/")
+async def google_action(request: Request):
+    print("IN GOOGLE ACTION")
+    print(f" my body {await request.body()}")
+    print(f" my body {await request.json()}")
 
 
 @app.get("/items/{item_id}")
