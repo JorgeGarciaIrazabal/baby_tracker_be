@@ -1,6 +1,4 @@
 fastapi
 uvicorn
-flask
-flask-assistant
-gunicorn
-google-actions
+pyjwt
+pycryptodome
