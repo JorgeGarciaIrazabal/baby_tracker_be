@@ -3,3 +3,4 @@ uvicorn
 flask
 flask-assistant
 gunicorn
+google-actions
