@@ -95,7 +95,7 @@ async def google_action(request: Request):
 
     if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
-        message = f"Feeding did already start at {feed.start_at}"
+        message = f"Feeding did already started at {feed.start_at}"
         return {
             "session": g_session,
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
