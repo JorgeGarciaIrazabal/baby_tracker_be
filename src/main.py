@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from enum import Enum
 from typing import List, Optional
@@ -24,6 +25,7 @@ Session.configure(bind=engine)
 
 class INTENTS(Enum):
     FEED = "FEED"
+    FEED_END = "FEED_END"
     POOP = "POOP"
     PEE = "PEE"
 
@@ -78,6 +80,7 @@ def read_root():
 async def google_action(request: Request):
     session = Session()
     g_request = await request.json()
+    print(g_request)
     g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
     intent_query = g_request["intent"]["query"]
     intent_name = g_request["intent"]["name"]
@@ -93,16 +96,28 @@ async def google_action(request: Request):
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
         }
 
-    if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
-        feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
-        message = f"Feeding did already started at {feed.start_at}"
-        return {
-            "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-        }
-
     if intent_name == INTENTS.FEED.value:
+        if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
+            feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
+            message = f"Feeding did already started at {feed.start_at}"
+            return {
+                "session": g_session,
+                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            }
         feed = Feed(baby=baby, type=FeedTypes.FORMULA)
+        session.add(feed)
+        session.commit()
+
+    if intent_name == INTENTS.FEED_END.value:
+        if session.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
+            message = f"No feeding started"
+            return {
+                "session": g_session,
+                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            }
+        feed = session.query(Feed).filter_by(baby=baby, end_at=None).one()
+        feed.amount = g_request["intent"]["params"]["milliliters"]["resolved"]
+        feed.end_at = datetime.utcnow()
         session.add(feed)
         session.commit()
 

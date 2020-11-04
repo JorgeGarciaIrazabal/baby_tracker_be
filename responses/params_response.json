@@ -1,0 +1,47 @@
+{
+    "handler": {
+        "name": "FEED_END"
+    },
+    "intent": {
+        "name": "FEED_END",
+        "params": {
+            "milliliters": {
+                "original": "10",
+                "resolved": 10
+            }
+        },
+        "query": "10 milliliters"
+    },
+    "scene": {
+        "name": "Track",
+        "slotFillingStatus": "UNSPECIFIED",
+        "slots": {},
+        "next": {
+            "name": "actions.scene.END_CONVERSATION"
+        }
+    },
+    "session": {
+        "id": "ABwppHGwIBM91mbUgdbc74yQow-b6LmQmpfrrI3KqxmfWXK_ErfzX1P2HcwO3B8RhpeTKbvFAzwxu7M",
+        "params": {},
+        "typeOverrides": [],
+        "languageCode": ''
+    },
+    "user": {
+        "locale": "en-US",
+        "params": {},
+        "accountLinkingStatus": "LINKED",
+        "verificationStatus": "VERIFIED",
+        "packageEntitlements": [],
+        "lastSeenTime": "2020-11-04T04:32:53Z"
+    },
+    "home": {
+        "params": {}
+    },
+    "device": {
+        "capabilities": [
+            "SPEECH",
+            "RICH_RESPONSE",
+            "LONG_FORM_AUDIO"
+        ]
+    }
+}

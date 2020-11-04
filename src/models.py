@@ -40,6 +40,7 @@ class Feed(Base):
     id = Column(Integer, primary_key=True, nullable=True)
     start_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     end_at = Column(DateTime)
+    amount = Column(Integer)
     type = Column(Enum(FeedTypes), nullable=False)
     baby_id = Column(Integer, ForeignKey("babies.id"))
     baby = relationship("Baby", foreign_keys=[baby_id])
