@@ -1,0 +1,42 @@
+{
+    "handler": {
+        "name": "FEED"
+    },
+    "intent": {
+        "name": "FEED",
+        "params": {},
+        "query": "feeding"
+    },
+    "scene": {
+        "name": "Track",
+        "slotFillingStatus": "UNSPECIFIED",
+        "slots": {},
+        "next": {
+            "name": "actions.scene.END_CONVERSATION"
+        }
+    },
+    "session": {
+        "id": "ABwppHEOtUTssqSJLY0BvdNsZgQ0HmELUfGre8ja1EkB1GCIb-NllnvXf8G8vSUqwGSWvvmPuRcRvjQ",
+        "params": {},
+        "typeOverrides": [],
+        "languageCode": ""
+    },
+    "user": {
+        "locale": "en-US",
+        "params": {},
+        "accountLinkingStatus": "LINKED",
+        "verificationStatus": "VERIFIED",
+        "packageEntitlements": [],
+        "lastSeenTime": "2020-11-02T05:39:44Z"
+    },
+    "home": {
+        "params": {}
+    },
+    "device": {
+        "capabilities": [
+            "SPEECH",
+            "RICH_RESPONSE",
+            "LONG_FORM_AUDIO"
+        ]
+    }
+}

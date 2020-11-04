@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: flatiron
+      POSTGRES_USER: flatiron
+      POSTGRES_DB: data
+    ports:
+      - 6432:5432

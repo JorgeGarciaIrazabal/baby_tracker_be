@@ -2,3 +2,5 @@ fastapi
 uvicorn
 pyjwt
 pycryptodome
+pydantic-sqlalchemy
+psycopg2
