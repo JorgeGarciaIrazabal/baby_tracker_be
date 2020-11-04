@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 
 .idea/
+
+baby_tracker_fe/node_modules/

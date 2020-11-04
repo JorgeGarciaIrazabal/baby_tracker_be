@@ -93,6 +93,14 @@ async def google_action(request: Request):
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
         }
 
+    if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
+        feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
+        message = f"Feeding did already start at {feed.start_at}"
+        return {
+            "session": g_session,
+            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+        }
+
     if intent_name == INTENTS.FEED.value:
         feed = Feed(baby=baby, type=FeedTypes.FORMULA)
         session.add(feed)
@@ -101,7 +109,7 @@ async def google_action(request: Request):
     message = f"{intent_query} recorded"
     return {
         "session": g_session,
-        "prompt": {"override": True, "firstSimple": {"speech": message, "text": ""}},
+        "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
     }
 
 
