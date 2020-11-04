@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.models import Baby, Base, Feed, Parent, PBaby, PParent
+from src.models import Baby, Base, Feed, FeedTypes, Parent, PBaby, PParent
 
 engine_url = os.environ.get("DATABASE_URL", "postgresql://flatiron:flatiron@localhost:6432/data")
 
@@ -93,8 +93,8 @@ async def google_action(request: Request):
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
         }
 
-    if intent_name == INTENTS.FEED.value():
-        feed = Feed(baby=baby, end_at=None)
+    if intent_name == INTENTS.FEED.value:
+        feed = Feed(baby=baby, type=FeedTypes.FORMULA)
         session.add(feed)
         session.commit()
 
