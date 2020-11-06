@@ -1,0 +1,12 @@
+<mat-list>
+    <div mat-subheader>Folders</div>
+    <mat-list-item *ngFor="let feed of feeds">
+        <button *ngIf="feed.endAt == null" class="ion-float-end">End</button>
+        <div mat-line>{{feed.startAt | date}} - {{dateDiffMin(feed)}} min</div>
+        <div mat-line> {{feed.amount}} ml</div>
+    </mat-list-item>
+    <button mat-fab color="primary" aria-label="Example icon button with a home icon" class="floatingbr"
+            (click)="openDialog()">
+        <mat-icon>add</mat-icon>
+    </button>
+</mat-list>

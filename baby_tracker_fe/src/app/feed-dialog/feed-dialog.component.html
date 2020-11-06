@@ -1,0 +1,12 @@
+<h1 mat-dialog-title>Create Baby</h1>
+<div mat-dialog-content>
+  <input [ngxTimepicker]="picker">
+  <ngx-material-timepicker #picker></ngx-material-timepicker>
+  <div class="row">
+    <mat-label>I am the:</mat-label>
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button [mat-dialog-close]="feed">Ok</button>
+</div>

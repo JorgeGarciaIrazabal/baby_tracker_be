@@ -8,13 +8,13 @@ import jwt
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from starlette.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.models import Baby, Base, Feed, FeedTypes, Parent, PBaby, PParent
+from src.models import Baby, Base, Feed, FeedTypes, PFeed, Parent, PBaby, PParent
 
 engine_url = os.environ.get("DATABASE_URL", "postgresql://flatiron:flatiron@localhost:6432/data")
 
@@ -74,6 +74,34 @@ def update_baby(id: int, pydantic_baby: PBaby):
     session = Session()
     baby = session.query(Baby).get(id)
     return PBaby.from_orm(baby)
+
+
+@app.get("/baby/parent/{id}", response_model=PBaby, tags=["api"])
+def get_parents_baby(id: int):
+    session = Session()
+    baby = session.query(Baby).filter((Baby.father_id == id) | (Baby.mother_id == id)).one()
+    return PBaby.from_orm(baby)
+
+
+@app.put("/baby/{baby_id}/parent/{parent_id}", response_model=PBaby, tags=["api"])
+def remove_parents_baby(baby_id: int, parent_id: int):
+    session = Session()
+    baby = session.query(Baby).get(baby_id).one()
+    if baby.father_id == parent_id:
+         baby.father_id = None
+
+    if baby.mother_id == parent_id:
+        baby.mother_id = None
+    session.add(baby)
+    session.commit()
+    return PBaby.from_orm(baby)
+
+
+@app.get("/baby/{baby_id}/feeds", response_model=List[PFeed], tags=["api"])
+def get_baby_feeds(baby_id: int):
+    session = Session()
+    feeds = session.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby_id).all()
+    return [PFeed.from_orm(feed) for feed in feeds]
 
 
 @app.put("/sign_in", response_model=PParent, tags=["api"])

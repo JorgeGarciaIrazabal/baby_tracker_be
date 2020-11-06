@@ -1,0 +1,61 @@
+<form [formGroup]="parentForm" novalidate (ngSubmit)="onSubmit(parentForm.value)">
+    <mat-card class="shipping-card">
+        <mat-card-header>
+            <mat-card-title>Authentication</mat-card-title>
+        </mat-card-header>
+        <div class="row">
+            <div class="col">
+                <mat-button-toggle-group [(ngModel)]="signingUp" formControlName="signingUp">
+                    <mat-button-toggle [value]="false">Sign In</mat-button-toggle>
+                    <mat-button-toggle [value]="true">Sign Up</mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
+        </div>
+        <mat-card-content>
+            <div class="row" *ngIf="signingUp">
+                <div class="col">
+                    <mat-form-field class="full-width">
+                        <mat-label>
+                            <ion-icon name="person"></ion-icon>
+                            Name
+                        </mat-label>
+                        <input matInput placeholder="Ex: MyName" formControlName="name">
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <mat-form-field class="full-width">
+                        <mat-label>
+                            <ion-icon name="mail"></ion-icon>
+                            Email
+                        </mat-label>
+                        <input type="email" matInput formControlName="email"
+                               placeholder="Ex. pat@example.com" >
+                        <mat-error *ngIf="parentForm.hasError('email') && !parentForm.hasError('required')">
+                            Please enter a valid email address
+                        </mat-error>
+                        <mat-error *ngIf="parentForm.hasError('required')">
+                            Email is <strong>required</strong>
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <mat-form-field class="full-width">
+                        <mat-label>
+                            <ion-icon name="lock-closed"></ion-icon>
+                            Password
+                        </mat-label>
+                        <input type="password" matInput placeholder="Your password" formControlName="password">
+                    </mat-form-field>
+                </div>
+            </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+            <button mat-raised-button color="primary" type="submit">Submit</button>
+        </mat-card-actions>
+    </mat-card>
+</form>

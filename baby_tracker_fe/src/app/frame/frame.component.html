@@ -1,0 +1,44 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="(isHandset$ | async) === false">
+    <mat-toolbar>Menu</mat-toolbar>
+    <mat-nav-list>
+      <a mat-list-item (click)="logout()">
+        <mat-icon>reply</mat-icon>
+        logout
+      </a>
+      <a mat-list-item *ngIf="baby !== null" (click)="removeBaby()">
+        <mat-icon>clear</mat-icon>
+        remove baby {{baby.name}}
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button
+        type="button"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        (click)="drawer.toggle()"
+        *ngIf="isHandset$ | async">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Baby Tracker</span>
+    </mat-toolbar>
+    <div *ngIf="baby === null" class="ion-padding">
+      <div>
+        <mat-label class="mat-title">
+          Add a baby to get started or ask someone to add you as a parent
+        </mat-label>
+        <br>
+        <button mat-fab color="primary" (click)="openDialog()">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+    </div>
+    <app-track-tabs *ngIf="baby !== null" [baby]="baby"></app-track-tabs>
+
+  </mat-sidenav-content>
+</mat-sidenav-container>
