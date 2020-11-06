@@ -4,3 +4,4 @@ pyjwt
 pycryptodome
 pydantic-sqlalchemy
 psycopg2
+aiofiles

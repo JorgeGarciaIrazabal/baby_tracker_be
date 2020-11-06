@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 import os
 from enum import Enum
@@ -6,8 +7,12 @@ import jwt
 
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from starlette.staticfiles import StaticFiles
+from pathlib import Path
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.models import Baby, Base, Feed, FeedTypes, Parent, PBaby, PParent
 
@@ -30,7 +35,7 @@ class INTENTS(Enum):
     PEE = "PEE"
 
 
-@app.get("/parent", response_model=List[PParent])
+@app.get("/parent", response_model=List[PParent], tags=["api"])
 def get_parents():
     session = Session()
     parents = session.query(Parent).all()
@@ -39,14 +44,14 @@ def get_parents():
     return pydantic_parents
 
 
-@app.get("/parent/{id}", response_model=PParent)
+@app.get("/parent/{id}", response_model=PParent, tags=["api"])
 def get_parent(id: int):
     session = Session()
     parent = session.query(Parent).get(id)
     return PParent.from_orm(parent)
 
 
-@app.post("/parent", response_model=PParent)
+@app.post("/parent", response_model=PParent, tags=["api"])
 def create_parent(pydantic_parent: PParent):
     session = Session()
     parent = Parent(**pydantic_parent.dict())
@@ -55,7 +60,7 @@ def create_parent(pydantic_parent: PParent):
     return PParent.from_orm(parent)
 
 
-@app.post("/baby", response_model=PBaby)
+@app.post("/baby", response_model=PBaby, tags=["api"])
 def create_baby(pydantic_baby: PBaby):
     session = Session()
     baby = Baby(**pydantic_baby.dict())
@@ -64,19 +69,27 @@ def create_baby(pydantic_baby: PBaby):
     return PBaby.from_orm(baby)
 
 
-@app.put("/baby/{id}", response_model=PBaby)
+@app.put("/baby/{id}", response_model=PBaby, tags=["api"])
 def update_baby(id: int, pydantic_baby: PBaby):
     session = Session()
     baby = session.query(Baby).get(id)
     return PBaby.from_orm(baby)
 
 
-@app.get("/")
+@app.put("/sign_in", response_model=PParent, tags=["api"])
+def sign_in(email: str, password: str):
+    session = Session()
+    parent = session.query(Parent).filter_by(email=email, password=password).one()
+    return PParent.from_orm(parent)
+
+
+@app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def read_root():
-    return {"Hello": "World"}
+    with open("/home/jirazabal/code/baby_tracker_be/src/dist/static/index.html") as f:
+        return f.read()
 
 
-@app.post("/")
+@app.post("/", include_in_schema=False)
 async def google_action(request: Request):
     session = Session()
     g_request = await request.json()
@@ -137,9 +150,20 @@ def get_ip():
     return ip
 
 
+app.mount("/", StaticFiles(directory="dist/static"))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 if __name__ == "__main__":
     # token =
     # "eyJhbGciOiJSUzI1NiIsImtpZCI6ImQwNWVmMjBjNDUxOTFlZmY2NGIyNWQzODBkNDZmZGU1NWFjMjI5ZDEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2MDQyOTQxMDMsImF1ZCI6IjY1NDM5NzcxNzMtcG83NmNibjVyNDV0aTBtYTRudGE0MXZqNjg2YnJtbmYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE5NTIyMDg3NTc1NTc4NzA3ODgiLCJlbWFpbCI6ImpvcmdlLmdpcmF6YWJhbEBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IkpvcmdlIEdhcmPDrWEgSXJhesOhYmFsIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hLS9BT2gxNEdqdFhFSmxxVGhjMngxNmtvb01nRl9nRmppV0J3S0k4Z0s3T3llS1hnPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IkpvcmdlIiwiZmFtaWx5X25hbWUiOiJHYXJjw61hIElyYXrDoWJhbCIsImlhdCI6MTYwNDI5NDQwMywiZXhwIjoxNjA0Mjk4MDAzLCJqdGkiOiJiZTYwM2Q0OTdmOGVjYTIzMmVhMWI0YmEzMDU1ZmUzZDJmNDUxOWEwIn0.HIePCJIEQqfKThip4wVVzCE2BrByO61A_KJXouKbYAD82q0l_h8dzQxKTkkeNl21t5ZeEQKrySQzSf38IPzglZnkujlJIVKiydp_VvXTYLPIsiyBMjPhjgT2tCYwsuxvHRznkmZhm9E1mDXXsRVehnrNfvkk49N5rsl6p8OBQomFhZ7wZusTvjvYzNwg1kkwVxcPhuApHZ8ZMDYPUjnMOnhQiUW5_vd2XJeXeihn2pU4n0YrxhVt8gP0nx32t4WJOebhyFC-lXaG7rcRMW-6hS-nafPMzTCEhCkG5g32pMAVp165kkk4ZoLm4A7E2tExkcosyMTq1Gp2bsP7Xw9JfA"
     # jwt.decode(token, SECRET, algorithms=["RS256"])
-
-    uvicorn.run(app, host=get_ip(), port=9001, debug=True)
+    with(Path(__file__).parent / "openapi.json").open(mode="w") as f:
+        json.dump(app.openapi(), f)
+    uvicorn.run(app, host="0.0.0.0", port=9001, debug=True)

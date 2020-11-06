@@ -22,6 +22,7 @@ class Parent(Base):
     id = Column(Integer, primary_key=True, nullable=True)
     name = Column(String)
     email = Column(String, nullable=False, unique=True)
+    password = Column(String, nullable=False)
 
 
 class Baby(Base):
