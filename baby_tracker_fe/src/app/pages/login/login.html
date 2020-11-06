@@ -1,0 +1,51 @@
+<!-- -->
+<ion-content class="animated fadeIn login auth-page ion-padding">
+    <div class="login-content">
+
+        <!-- Logo -->
+        <div padding-horizontal text-center class="animated fadeInDown">
+            <div class="logo"></div>
+            <h2 ion-text class="text-primary">
+                <strong>Baby Tracker</strong> Login
+            </h2>
+        </div>
+
+        <!-- Login form -->
+        <form (ngSubmit)="login()">
+            <ion-item *ngIf="!signingIn" class="animated fadeInDown">
+                <ion-label position="floating">
+                    <ion-icon name="person"></ion-icon>
+                    Name
+                </ion-label>
+                <ion-input [ngModelOptions]="{standalone: true}" [(ngModel)]="user.name"></ion-input>
+            </ion-item>
+            <ion-item>
+                <ion-label position="floating">
+                    <ion-icon name="mail"></ion-icon>
+                    Email
+                </ion-label>
+                <ion-input type="email" [ngModelOptions]="{standalone: true}" [(ngModel)]="user.email"></ion-input>
+            </ion-item>
+
+            <ion-item>
+                <ion-label position="floating">
+                    <ion-icon name="lock-closed"></ion-icon>
+                    Password
+                </ion-label>
+                <ion-input type="password" [ngModelOptions]="{standalone: true}" [(ngModel)]="user.password"></ion-input>
+            </ion-item>
+            <ion-row class="ion-padding">
+                <ion-col>
+                    <ion-label  [ngClass]="{'bold': !signingIn}">Sign up</ion-label>
+                </ion-col>
+                <ion-col>
+                    <ion-toggle [ngModelOptions]="{standalone: true}" [(ngModel)]="signingIn"></ion-toggle>
+                </ion-col>
+                <ion-col>
+                    <ion-label [ngClass]="{'bold': signingIn}">Sign in</ion-label>
+                </ion-col>
+            </ion-row>
+            <ion-button expand="full" type="submit" fill="outline">Submit</ion-button>
+        </form>
+    </div>
+</ion-content>
