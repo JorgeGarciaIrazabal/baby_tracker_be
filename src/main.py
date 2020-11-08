@@ -1,31 +1,19 @@
 import json
 from datetime import datetime
-import os
 from enum import Enum
-from typing import List, Optional
 import jwt
 
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import create_engine, desc
-from sqlalchemy.orm import sessionmaker
 from starlette.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.models import Baby, Base, Feed, FeedTypes, PFeed, Parent, PBaby, PParent
+from src.app import static_path
+from src.controllers import *
 
-engine_url = os.environ.get("DATABASE_URL", "postgresql://flatiron:flatiron@localhost:6432/data")
-
-engine = create_engine(engine_url)
-
-Base.metadata.create_all(engine)
-
-app = FastAPI()
-
-Session = sessionmaker(bind=engine)
-Session.configure(bind=engine)
+from src.models import Baby, Feed, FeedTypes, Parent
 
 
 class INTENTS(Enum):
@@ -35,138 +23,65 @@ class INTENTS(Enum):
     PEE = "PEE"
 
 
-@app.get("/parent", response_model=List[PParent], tags=["api"])
-def get_parents():
-    session = Session()
-    parents = session.query(Parent).all()
-    pydantic_parents = [PParent.from_orm(parent) for parent in parents]
-
-    return pydantic_parents
-
-
-@app.get("/parent/{id}", response_model=PParent, tags=["api"])
-def get_parent(id: int):
-    session = Session()
-    parent = session.query(Parent).get(id)
-    return PParent.from_orm(parent)
-
-
-@app.post("/parent", response_model=PParent, tags=["api"])
-def create_parent(pydantic_parent: PParent):
-    session = Session()
-    parent = Parent(**pydantic_parent.dict())
-    session.add(parent)
-    session.commit()
-    return PParent.from_orm(parent)
-
-
-@app.post("/baby", response_model=PBaby, tags=["api"])
-def create_baby(pydantic_baby: PBaby):
-    session = Session()
-    baby = Baby(**pydantic_baby.dict())
-    session.add(baby)
-    session.commit()
-    return PBaby.from_orm(baby)
-
-
-@app.put("/baby/{id}", response_model=PBaby, tags=["api"])
-def update_baby(id: int, pydantic_baby: PBaby):
-    session = Session()
-    baby = session.query(Baby).get(id)
-    return PBaby.from_orm(baby)
-
-
-@app.get("/baby/parent/{id}", response_model=PBaby, tags=["api"])
-def get_parents_baby(id: int):
-    session = Session()
-    baby = session.query(Baby).filter((Baby.father_id == id) | (Baby.mother_id == id)).one()
-    return PBaby.from_orm(baby)
-
-
-@app.put("/baby/{baby_id}/parent/{parent_id}", response_model=PBaby, tags=["api"])
-def remove_parents_baby(baby_id: int, parent_id: int):
-    session = Session()
-    baby = session.query(Baby).get(baby_id).one()
-    if baby.father_id == parent_id:
-         baby.father_id = None
-
-    if baby.mother_id == parent_id:
-        baby.mother_id = None
-    session.add(baby)
-    session.commit()
-    return PBaby.from_orm(baby)
-
-
-@app.get("/baby/{baby_id}/feeds", response_model=List[PFeed], tags=["api"])
-def get_baby_feeds(baby_id: int):
-    session = Session()
-    feeds = session.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby_id).all()
-    return [PFeed.from_orm(feed) for feed in feeds]
-
-
-@app.put("/sign_in", response_model=PParent, tags=["api"])
-def sign_in(email: str, password: str):
-    session = Session()
-    parent = session.query(Parent).filter_by(email=email, password=password).one()
-    return PParent.from_orm(parent)
-
-
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def read_root():
-    with open("/home/jirazabal/code/baby_tracker_be/src/dist/static/index.html") as f:
-        return f.read()
+    return (static_path / "index.html").read_text()
 
 
 @app.post("/", include_in_schema=False)
 async def google_action(request: Request):
     session = Session()
-    g_request = await request.json()
-    print(g_request)
-    g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
-    intent_query = g_request["intent"]["query"]
-    intent_name = g_request["intent"]["name"]
 
-    if "authorization" in request.headers:
-        user = jwt.decode(request.headers["authorization"], verify=False, algorithms=["RS256"])
-        parent = session.query(Parent).filter_by(email=user["email"]).one()
-        baby = session.query(Baby).filter((Baby.father == parent) | (Baby.mother == parent)).one()
-    else:
-        message = "You need to be authorized to track baby"
+    try:
+        g_request = await request.json()
+        print(g_request)
+        g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
+        intent_query = g_request["intent"]["query"]
+        intent_name = g_request["intent"]["name"]
+
+        if "authorization" in request.headers:
+            user = jwt.decode(request.headers["authorization"], verify=False, algorithms=["RS256"])
+            parent = session.query(Parent).filter_by(email=user["email"]).one()
+            baby = session.query(Baby).filter((Baby.father == parent) | (Baby.mother == parent)).one()
+        else:
+            message = "You need to be authorized to track baby"
+            return {
+                "session": g_session,
+                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            }
+
+        if intent_name == INTENTS.FEED.value:
+            if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
+                feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
+                message = f"Feeding did already started at {feed.start_at}"
+                return {
+                    "session": g_session,
+                    "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+                }
+            feed = Feed(baby=baby, type=FeedTypes.FORMULA)
+            session.add(feed)
+            session.commit()
+
+        if intent_name == INTENTS.FEED_END.value:
+            if session.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
+                message = f"No feeding started"
+                return {
+                    "session": g_session,
+                    "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+                }
+            feed = session.query(Feed).filter_by(baby=baby, end_at=None).one()
+            feed.amount = g_request["intent"]["params"]["milliliters"]["resolved"]
+            feed.end_at = datetime.utcnow()
+            session.add(feed)
+            session.commit()
+
+        message = f"{intent_query} recorded"
         return {
             "session": g_session,
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
         }
-
-    if intent_name == INTENTS.FEED.value:
-        if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
-            feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
-            message = f"Feeding did already started at {feed.start_at}"
-            return {
-                "session": g_session,
-                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-            }
-        feed = Feed(baby=baby, type=FeedTypes.FORMULA)
-        session.add(feed)
-        session.commit()
-
-    if intent_name == INTENTS.FEED_END.value:
-        if session.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
-            message = f"No feeding started"
-            return {
-                "session": g_session,
-                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-            }
-        feed = session.query(Feed).filter_by(baby=baby, end_at=None).one()
-        feed.amount = g_request["intent"]["params"]["milliliters"]["resolved"]
-        feed.end_at = datetime.utcnow()
-        session.add(feed)
-        session.commit()
-
-    message = f"{intent_query} recorded"
-    return {
-        "session": g_session,
-        "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-    }
+    finally:
+        session.close()
 
 
 def get_ip():
@@ -178,7 +93,7 @@ def get_ip():
     return ip
 
 
-app.mount("/", StaticFiles(directory="dist/static"))
+app.mount("/", StaticFiles(directory=static_path))
 
 app.add_middleware(
     CORSMiddleware,
@@ -194,4 +109,5 @@ if __name__ == "__main__":
     # jwt.decode(token, SECRET, algorithms=["RS256"])
     with(Path(__file__).parent / "openapi.json").open(mode="w") as f:
         json.dump(app.openapi(), f)
+    print(f"local_id: http://{get_ip()}:9001")
     uvicorn.run(app, host="0.0.0.0", port=9001, debug=True)

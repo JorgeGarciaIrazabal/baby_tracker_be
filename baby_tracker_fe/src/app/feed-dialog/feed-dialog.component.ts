@@ -1,7 +1,9 @@
-import {Component, Inject, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import {Component, Input, OnInit} from '@angular/core';
 import {Baby, Feed, FeedTypes} from "../../openapi/models";
-import {Storage} from "@ionic/storage";
+import {FormBuilder, Validators} from "@angular/forms";
+// @ts-ignore
+import moment from 'moment';
+import {DatetimeToolsService} from "../datetime-tools.service";
 
 @Component({
   selector: 'app-feed-dialog',
@@ -9,20 +11,43 @@ import {Storage} from "@ionic/storage";
   styleUrls: ['./feed-dialog.component.scss'],
 })
 export class FeedDialogComponent implements OnInit {
-  public feed: Feed;
+  @Input() public feed: Feed
+  @Input() public onCancel: Function
+  @Input() public onOk: Function
+  @Input() public baby: Baby
 
-  constructor(
-      public dialogRef: MatDialogRef<FeedDialogComponent>,
-      @Inject(MAT_DIALOG_DATA) public data: Feed,
-  ) {
-    this.feed = data
+  feedForm = this.fb.group({
+    startDate: [null, Validators.required],
+    startTime: [null, Validators.required],
+    endDate: [null],
+    endTime: [null],
+    amount: [null, Validators.required],
+  });
+
+  constructor(private fb: FormBuilder, private dtt: DatetimeToolsService) {
   }
 
-  onCancel(): void {
-    this.dialogRef.close()
+  ngOnInit() {
+    if (this.feed !== null) {
+      this.feedForm.setValue({
+        startDate: this.feed.startAt,
+        startTime:  this.dtt.datetimeToStrTime(this.feed.startAt),
+        endDate: this.feed.endAt ? this.feed.endAt : null,
+        endTime: this.feed.endAt ? this.dtt.datetimeToStrTime(this.feed.endAt) : null,
+        amount: this.feed.amount,
+      })
+    }
   }
 
-  ngOnInit() {}
+  onSubmit() {
+    this.feed.amount = this.feedForm.value.amount
+    this.feed.startAt = this.dtt.datetimeUIToUtc(this.feedForm.value.startDate, this.feedForm.value.startTime)
+    if (this.feedForm.value.endDate !== null) {
+      this.feed.endAt = this.dtt.datetimeUIToUtc(this.feedForm.value.endDate, this.feedForm.value.endTime)
+    }
 
-
+    // this.feed.babyId = this.baby.id
+    this.feed.type = FeedTypes.NUMBER_1
+    this.onOk(this.feed)
+  }
 }

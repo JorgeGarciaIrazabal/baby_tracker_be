@@ -3,5 +3,6 @@ uvicorn
 pyjwt
 pycryptodome
 pydantic-sqlalchemy
+sqlalchemy
 psycopg2
 aiofiles

@@ -1,6 +1,7 @@
 import enum
 from datetime import datetime
 
+from pydantic import BaseModel
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,7 +18,15 @@ class FeedTypes(enum.Enum):
     SOLID = 5
 
 
-class Parent(Base):
+class BTMixin:
+    def update(self, model: BaseModel):
+        kwargs = model.dict(exclude_none=True, exclude_unset=True, exclude_defaults=True)
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+
+class Parent(BTMixin, Base):
     __tablename__ = "parents"
     id = Column(Integer, primary_key=True, nullable=True)
     name = Column(String)
@@ -25,7 +34,7 @@ class Parent(Base):
     password = Column(String, nullable=False)
 
 
-class Baby(Base):
+class Baby(BTMixin, Base):
     __tablename__ = "babies"
     id = Column(Integer, primary_key=True, nullable=True)
     birth_date = Column(DateTime, nullable=False)
@@ -36,18 +45,18 @@ class Baby(Base):
     mother = relationship("Parent", foreign_keys=[mother_id])
 
 
-class Feed(Base):
+class Feed(BTMixin, Base):
     __tablename__ = "feeds"
     id = Column(Integer, primary_key=True, nullable=True)
     start_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    end_at = Column(DateTime)
+    end_at = Column(DateTime, nullable=True)
     amount = Column(Integer)
     type = Column(Enum(FeedTypes), nullable=False)
     baby_id = Column(Integer, ForeignKey("babies.id"))
     baby = relationship("Baby", foreign_keys=[baby_id])
 
 
-class Pee(Base):
+class Pee(BTMixin, Base):
     __tablename__ = "pees"
     id = Column(Integer, primary_key=True, nullable=True)
     at = Column(DateTime, nullable=False, default=datetime.utcnow)
@@ -55,7 +64,7 @@ class Pee(Base):
     baby = relationship("Baby", foreign_keys=[baby_id])
 
 
-class Poop(Base):
+class Poop(BTMixin, Base):
     __tablename__ = "poops"
     id = Column(Integer, primary_key=True, nullable=True)
     at = Column(DateTime, nullable=False, default=datetime.utcnow)

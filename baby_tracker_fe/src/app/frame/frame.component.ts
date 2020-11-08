@@ -23,14 +23,20 @@ export class FrameComponent {
             map(result => result.matches),
             shareReplay()
         );
+    public selectingNewParent: boolean;
+    public newParentsEmail: string;
 
     constructor(private breakpointObserver: BreakpointObserver, public nav: NavController,
-                private storage: Storage, private apiService: ApiService, public dialog: MatDialog) {
+                private storage: Storage, private apiService: ApiService, public dialog: MatDialog,
+                public toastCtrl: ToastController,) {
     }
 
     async ngOnInit() {
         await this.storage.ready()
         this.parent = await this.storage.get("self")
+        if (this.parent === null) {
+            await this.nav.navigateForward("login")
+        }
         try {
             this.baby = await this.apiService.api.getParentsBabyBabyParentIdGet({id: this.parent.id})
         } catch (e) {
@@ -69,5 +75,31 @@ export class FrameComponent {
             this.baby = result;
             this.baby = await this.apiService.api.createBabyBabyPost({baby: this.baby})
         });
+    }
+
+    setSelectingNewParent(value: boolean) {
+        this.selectingNewParent = value
+    }
+
+    async setNewParent() {
+        try {
+            this.baby = await this.apiService.api.newParentForBabyBabyIdNewParentPut({
+                id: this.baby.id,
+                newParentEmail: this.newParentsEmail
+            })
+        } catch (e) {
+            await (await this.toastCtrl.create({
+                message: "failed add new parent",
+                duration: 1000,
+            })).present()
+        }
+        this.selectingNewParent = false
+    }
+
+    showNewParent() {
+        return this.baby !== null &&
+            !this.selectingNewParent &&
+            (this.baby.fatherId == null ||
+                this.baby.motherId == null)
     }
 }

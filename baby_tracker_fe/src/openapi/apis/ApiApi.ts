@@ -33,11 +33,15 @@ export interface CreateBabyBabyPostRequest {
     baby: Baby;
 }
 
+export interface CreateFeedFeedPostRequest {
+    feed: Feed;
+}
+
 export interface CreateParentParentPostRequest {
     parent: Parent;
 }
 
-export interface GetBabyFeedsBabyBabyIdFeedsGetRequest {
+export interface GetBabyFeedsBabyBabyIdFeedGetRequest {
     babyId: number;
 }
 
@@ -47,6 +51,11 @@ export interface GetParentParentIdGetRequest {
 
 export interface GetParentsBabyBabyParentIdGetRequest {
     id: number;
+}
+
+export interface NewParentForBabyBabyIdNewParentPutRequest {
+    id: number;
+    newParentEmail: string;
 }
 
 export interface RemoveParentsBabyBabyBabyIdParentParentIdPutRequest {
@@ -62,6 +71,10 @@ export interface SignInSignInPutRequest {
 export interface UpdateBabyBabyIdPutRequest {
     id: number;
     baby: Baby;
+}
+
+export interface UpdateFeedFeedPutRequest {
+    feed: Feed;
 }
 
 /**
@@ -103,6 +116,39 @@ export class ApiApi extends runtime.BaseAPI {
     }
 
     /**
+     * Create Feed
+     */
+    async createFeedFeedPostRaw(requestParameters: CreateFeedFeedPostRequest): Promise<runtime.ApiResponse<Feed>> {
+        if (requestParameters.feed === null || requestParameters.feed === undefined) {
+            throw new runtime.RequiredError('feed','Required parameter requestParameters.feed was null or undefined when calling createFeedFeedPost.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/feed`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: FeedToJSON(requestParameters.feed),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FeedFromJSON(jsonValue));
+    }
+
+    /**
+     * Create Feed
+     */
+    async createFeedFeedPost(requestParameters: CreateFeedFeedPostRequest): Promise<Feed> {
+        const response = await this.createFeedFeedPostRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
      * Create Parent
      */
     async createParentParentPostRaw(requestParameters: CreateParentParentPostRequest): Promise<runtime.ApiResponse<Parent>> {
@@ -138,9 +184,9 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Get Baby Feeds
      */
-    async getBabyFeedsBabyBabyIdFeedsGetRaw(requestParameters: GetBabyFeedsBabyBabyIdFeedsGetRequest): Promise<runtime.ApiResponse<Array<Feed>>> {
+    async getBabyFeedsBabyBabyIdFeedGetRaw(requestParameters: GetBabyFeedsBabyBabyIdFeedGetRequest): Promise<runtime.ApiResponse<Array<Feed>>> {
         if (requestParameters.babyId === null || requestParameters.babyId === undefined) {
-            throw new runtime.RequiredError('babyId','Required parameter requestParameters.babyId was null or undefined when calling getBabyFeedsBabyBabyIdFeedsGet.');
+            throw new runtime.RequiredError('babyId','Required parameter requestParameters.babyId was null or undefined when calling getBabyFeedsBabyBabyIdFeedGet.');
         }
 
         const queryParameters: runtime.HTTPQuery = {};
@@ -148,7 +194,7 @@ export class ApiApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         const response = await this.request({
-            path: `/baby/{baby_id}/feeds`.replace(`{${"baby_id"}}`, encodeURIComponent(String(requestParameters.babyId))),
+            path: `/baby/{baby_id}/feed`.replace(`{${"baby_id"}}`, encodeURIComponent(String(requestParameters.babyId))),
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -160,8 +206,8 @@ export class ApiApi extends runtime.BaseAPI {
     /**
      * Get Baby Feeds
      */
-    async getBabyFeedsBabyBabyIdFeedsGet(requestParameters: GetBabyFeedsBabyBabyIdFeedsGetRequest): Promise<Array<Feed>> {
-        const response = await this.getBabyFeedsBabyBabyIdFeedsGetRaw(requestParameters);
+    async getBabyFeedsBabyBabyIdFeedGet(requestParameters: GetBabyFeedsBabyBabyIdFeedGetRequest): Promise<Array<Feed>> {
+        const response = await this.getBabyFeedsBabyBabyIdFeedGetRaw(requestParameters);
         return await response.value();
     }
 
@@ -248,6 +294,44 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async getParentsParentGet(): Promise<Array<Parent>> {
         const response = await this.getParentsParentGetRaw();
+        return await response.value();
+    }
+
+    /**
+     * New Parent For Baby
+     */
+    async newParentForBabyBabyIdNewParentPutRaw(requestParameters: NewParentForBabyBabyIdNewParentPutRequest): Promise<runtime.ApiResponse<Baby>> {
+        if (requestParameters.id === null || requestParameters.id === undefined) {
+            throw new runtime.RequiredError('id','Required parameter requestParameters.id was null or undefined when calling newParentForBabyBabyIdNewParentPut.');
+        }
+
+        if (requestParameters.newParentEmail === null || requestParameters.newParentEmail === undefined) {
+            throw new runtime.RequiredError('newParentEmail','Required parameter requestParameters.newParentEmail was null or undefined when calling newParentForBabyBabyIdNewParentPut.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        if (requestParameters.newParentEmail !== undefined) {
+            queryParameters['new_parent_email'] = requestParameters.newParentEmail;
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/baby/{id}/new_parent`.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters.id))),
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BabyFromJSON(jsonValue));
+    }
+
+    /**
+     * New Parent For Baby
+     */
+    async newParentForBabyBabyIdNewParentPut(requestParameters: NewParentForBabyBabyIdNewParentPutRequest): Promise<Baby> {
+        const response = await this.newParentForBabyBabyIdNewParentPutRaw(requestParameters);
         return await response.value();
     }
 
@@ -361,6 +445,39 @@ export class ApiApi extends runtime.BaseAPI {
      */
     async updateBabyBabyIdPut(requestParameters: UpdateBabyBabyIdPutRequest): Promise<Baby> {
         const response = await this.updateBabyBabyIdPutRaw(requestParameters);
+        return await response.value();
+    }
+
+    /**
+     * Update Feed
+     */
+    async updateFeedFeedPutRaw(requestParameters: UpdateFeedFeedPutRequest): Promise<runtime.ApiResponse<Feed>> {
+        if (requestParameters.feed === null || requestParameters.feed === undefined) {
+            throw new runtime.RequiredError('feed','Required parameter requestParameters.feed was null or undefined when calling updateFeedFeedPut.');
+        }
+
+        const queryParameters: runtime.HTTPQuery = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        const response = await this.request({
+            path: `/feed`,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: FeedToJSON(requestParameters.feed),
+        });
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => FeedFromJSON(jsonValue));
+    }
+
+    /**
+     * Update Feed
+     */
+    async updateFeedFeedPut(requestParameters: UpdateFeedFeedPutRequest): Promise<Feed> {
+        const response = await this.updateFeedFeedPutRaw(requestParameters);
         return await response.value();
     }
 

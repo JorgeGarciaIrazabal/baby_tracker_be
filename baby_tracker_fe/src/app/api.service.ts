@@ -10,7 +10,7 @@ export class ApiService {
 
     constructor() {
         this.api = new ApiApi(new Configuration({
-                basePath: "http://localhost:9001",
+                basePath: "",
             })
         )
     }

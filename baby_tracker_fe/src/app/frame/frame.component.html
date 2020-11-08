@@ -13,6 +13,24 @@
         <mat-icon>clear</mat-icon>
         remove baby {{baby.name}}
       </a>
+
+      <a mat-list-item *ngIf="showNewParent()" (click)="setSelectingNewParent(true)">
+        <mat-icon>person</mat-icon>
+        select other parent
+      </a>
+      <div *ngIf="selectingNewParent" class="ion-padding">
+        <mat-label>
+          <ion-icon name="email"></ion-icon>
+          New Parent's email
+        </mat-label>
+        <input matInput type="email"  [(ngModel)]="newParentsEmail" placeholder="Ex: myeamil@domain.com" >
+        <div class="row">
+          <button mat-raised-button (click)="setSelectingNewParent(false)">Cancel</button>
+          <button mat-raised-button color="primary" (click)="setNewParent()">
+            Ok
+          </button>
+        </div>
+      </div>
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
