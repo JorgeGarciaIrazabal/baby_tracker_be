@@ -1,10 +1,7 @@
 import json
-from datetime import datetime
 from enum import Enum
-import jwt
 
 import uvicorn
-from fastapi import Request
 from fastapi.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 from pathlib import Path
@@ -12,8 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.app import static_path
 from src.controllers import *
-
-from src.models import Baby, Feed, FeedTypes, Parent
 
 
 class INTENTS(Enum):
@@ -26,62 +21,6 @@ class INTENTS(Enum):
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 def read_root():
     return (static_path / "index.html").read_text()
-
-
-@app.post("/", include_in_schema=False)
-async def google_action(request: Request):
-    session = Session()
-
-    try:
-        g_request = await request.json()
-        print(g_request)
-        g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
-        intent_query = g_request["intent"]["query"]
-        intent_name = g_request["intent"]["name"]
-
-        if "authorization" in request.headers:
-            user = jwt.decode(request.headers["authorization"], verify=False, algorithms=["RS256"])
-            parent = session.query(Parent).filter_by(email=user["email"]).one()
-            baby = session.query(Baby).filter((Baby.father == parent) | (Baby.mother == parent)).one()
-        else:
-            message = "You need to be authorized to track baby"
-            return {
-                "session": g_session,
-                "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-            }
-
-        if intent_name == INTENTS.FEED.value:
-            if session.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
-                feed = session.query(Feed).filter_by(baby=baby, end_at=None).first()
-                message = f"Feeding did already started at {feed.start_at}"
-                return {
-                    "session": g_session,
-                    "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-                }
-            feed = Feed(baby=baby, type=FeedTypes.FORMULA)
-            session.add(feed)
-            session.commit()
-
-        if intent_name == INTENTS.FEED_END.value:
-            if session.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
-                message = f"No feeding started"
-                return {
-                    "session": g_session,
-                    "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-                }
-            feed = session.query(Feed).filter_by(baby=baby, end_at=None).one()
-            feed.amount = g_request["intent"]["params"]["milliliters"]["resolved"]
-            feed.end_at = datetime.utcnow()
-            session.add(feed)
-            session.commit()
-
-        message = f"{intent_query} recorded"
-        return {
-            "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
-        }
-    finally:
-        session.close()
 
 
 def get_ip():
