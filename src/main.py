@@ -7,8 +7,7 @@ from starlette.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.app import static_path
-from src.controllers import *
+from src.app import static_path, app
 
 
 class INTENTS(Enum):
@@ -16,11 +15,6 @@ class INTENTS(Enum):
     FEED_END = "FEED_END"
     POOP = "POOP"
     PEE = "PEE"
-
-
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def read_root():
-    return (static_path / "index.html").read_text()
 
 
 def get_ip():
@@ -31,8 +25,6 @@ def get_ip():
     s.close()
     return ip
 
-
-app.mount("/", StaticFiles(directory=static_path))
 
 app.add_middleware(
     CORSMiddleware,
