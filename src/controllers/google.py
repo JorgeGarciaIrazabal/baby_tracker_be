@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum
 
 import jwt
 from fastapi import Depends
@@ -6,7 +7,6 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from src.app import app, get_db
-from src.main import INTENTS
 from src.models import Baby, Feed, FeedTypes, Parent
 
 
@@ -59,3 +59,10 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
         "session": g_session,
         "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
     }
+
+
+class INTENTS(Enum):
+    FEED = "FEED"
+    FEED_END = "FEED_END"
+    POOP = "POOP"
+    PEE = "PEE"

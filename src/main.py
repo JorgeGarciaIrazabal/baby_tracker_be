@@ -1,20 +1,10 @@
 import json
-from enum import Enum
+from pathlib import Path
 
 import uvicorn
-from fastapi.responses import HTMLResponse
-from starlette.staticfiles import StaticFiles
-from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.app import static_path, app
-
-
-class INTENTS(Enum):
-    FEED = "FEED"
-    FEED_END = "FEED_END"
-    POOP = "POOP"
-    PEE = "PEE"
+from src.controllers import *
 
 
 def get_ip():
