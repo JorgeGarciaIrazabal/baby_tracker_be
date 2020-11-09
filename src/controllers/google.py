@@ -35,7 +35,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True, "firstSimple": {
                 "speech": f"Recoded feeding",
-                "text": f"Recoded feeding at {feed.start_at} for {baby.name}",
+                "text": f"Recoded feeding at {feed.start_at.strftime('%-i:%M %p')} for {baby.name}",
             }
         },
     }
