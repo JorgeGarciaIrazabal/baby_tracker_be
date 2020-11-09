@@ -19,7 +19,7 @@ class INTENTS(Enum):
 
 
 def feeding(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
+    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"], "languageCode": ""}
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = f"Feeding did already started at {feed.start_at}"
@@ -27,7 +27,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             "session": g_session,
             "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
         }
-    feed = Feed(baby=baby, type=FeedTypes.FORMULA)
+    feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
     db.add(feed)
     db.commit()
     return {
@@ -35,7 +35,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True, "firstSimple": {
                 "speech": f"Recoded feeding",
-                "text": f"Recoded feeding at {feed.start_at.strftime('%-i:%M %p')} for {baby.name}",
+                "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
             }
         },
     }

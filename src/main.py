@@ -5,6 +5,7 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.controllers import *
+from src.app import app
 
 
 def get_ip():
