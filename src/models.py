@@ -1,7 +1,7 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel
+from pydantic import BaseConfig, BaseModel
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -72,8 +72,15 @@ class Poop(BTMixin, Base):
     baby = relationship("Baby", foreign_keys=[baby_id])
 
 
+class FeedConfig(BaseConfig):
+    orm_mode = True
+    json_encoders = {
+        datetime: lambda d:  d.replace(tzinfo=timezone.utc).isoformat()
+    }
+
+
 PParent = sqlalchemy_to_pydantic(Parent)
 PBaby = sqlalchemy_to_pydantic(Baby)
-PFeed = sqlalchemy_to_pydantic(Feed)
+PFeed = sqlalchemy_to_pydantic(Feed, config=FeedConfig)
 PPee = sqlalchemy_to_pydantic(Pee)
 PPoop = sqlalchemy_to_pydantic(Poop)

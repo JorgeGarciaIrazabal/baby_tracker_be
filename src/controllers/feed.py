@@ -30,3 +30,11 @@ def update_feed(p_feed: PFeed, db: Session = Depends(get_db)):
     db.add(feed)
     db.commit()
     return PFeed.from_orm(feed)
+
+
+@app.delete("/feed/{id}", response_model=PFeed, tags=["api"])
+def delete_feed(id: int, db: Session = Depends(get_db)):
+    feed: Feed = db.query(Feed).get(id)
+    db.delete(feed)
+    db.commit()
+    return PFeed.from_orm(feed)
