@@ -21,7 +21,9 @@ class INTENTS(Enum):
 
 
 def show_list(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"], "languageCode": ""}
+    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"],
+                 "languageCode": ""
+                 }
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = f"Feeding did already started at {feed.start_at}"
@@ -44,7 +46,9 @@ def show_list(db: Session, g_request: dict, baby: Baby):
 
 
 def feeding(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"], "languageCode": ""}
+    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"],
+                 "languageCode": ""
+                 }
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = f"Feeding did already started at {feed.start_at}"
@@ -64,17 +68,10 @@ def feeding(db: Session, g_request: dict, baby: Baby):
                 "speech": f"Recoded feeding",
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
             },
-            "content": {
-                "list": {
-                    "title": "test title",
-                    "subtitle": "Table Subtitle",
-                    "items": {
-                        "key": "11",
-                        "title": "list title",
-                        "description": "list description"
-                    }
-                }
-            },
+            "suggestions": [
+                { "title": "yes"},
+                { "title": "no"},
+            ],
         },
     }
 
@@ -83,7 +80,8 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
         g_session["params"]["message_type"] = "NO_STARTING_FEEDING"
-        g_session["params"]["milliliters"] = g_request["intent"]["params"]["milliliters"]["resolved"]
+        g_session["params"]["milliliters"] = g_request["intent"]["params"]["milliliters"][
+            "resolved"]
         message = f"No feeding started"
         return {
             "session": g_session,
