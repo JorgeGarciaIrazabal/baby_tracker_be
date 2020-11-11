@@ -10,3 +10,6 @@ humanize
 
 
 # ssh root@vps65488.inmotionhosting.com
+# tar -zcvf dist.tar.gz dist/
+# scp dist.tar.gz root@vps65488.inmotionhosting.com:/home/jirazabal/repos/baby_tracker_fe
+
