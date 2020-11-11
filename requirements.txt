@@ -4,6 +4,9 @@ pyjwt
 pycryptodome
 pydantic-sqlalchemy
 sqlalchemy
-psycopg2
+psycopg2-binary
 aiofiles
 humanize
+
+
+# ssh root@vps65488.inmotionhosting.com
