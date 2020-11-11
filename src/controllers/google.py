@@ -4,6 +4,7 @@ from enum import Enum
 import humanize
 import jwt
 from fastapi import Depends
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
@@ -16,9 +17,10 @@ class INTENTS(Enum):
     FEED_END = "FEED_END"
     POOP = "POOP"
     PEE = "PEE"
+    SHOW_LIST = "SHOW_LIST"
 
 
-def feeding(db: Session, g_request: dict, baby: Baby):
+def show_list(db: Session, g_request: dict, baby: Baby):
     g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"], "languageCode": ""}
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
@@ -37,6 +39,42 @@ def feeding(db: Session, g_request: dict, baby: Baby):
                 "speech": f"Recoded feeding",
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
             }
+        },
+    }
+
+
+def feeding(db: Session, g_request: dict, baby: Baby):
+    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"], "languageCode": ""}
+    if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
+        feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
+        message = f"Feeding did already started at {feed.start_at}"
+        return {
+            "session": g_session,
+            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+        }
+    feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
+    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby.id)[:4]
+    db.add(feed)
+    db.commit()
+    return {
+        "session": g_session,
+        "prompt": {
+            "override": True,
+            "firstSimple": {
+                "speech": f"Recoded feeding",
+                "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
+            },
+            "content": {
+                "list": {
+                    "title": "test title",
+                    "subtitle": "Table Subtitle",
+                    "items": {
+                        "key": "11",
+                        "title": "list title",
+                        "description": "list description"
+                    }
+                }
+            },
         },
     }
 
@@ -61,7 +99,8 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     return {
         "session": g_session,
         "prompt": {
-            "override": True, "firstSimple": {
+            "override": True,
+            "firstSimple": {
                 "speech": f"Finished recoding feeding",
                 "text": f"Finished recording feeding for {human_time} on {baby.name} "
             }
