@@ -6,10 +6,17 @@ cd /home/jirazabal/repos/baby_tracker_be
 git fetch origin
 git reset --hard origin/main
 
-sudo kill -9 `pgrep python`
-/home/jirazabal/scripts/startup_script.sh &
+echo "killing python"
+pkill python
 
-sudo kill -9 `pgrep node`
+/home/jirazabal/scripts/startup_script.sh &
+echo "extracting dist"
+rm -rf /home/jirazabal/repos/baby_tracker_fe/dist
+mkdir /home/jirazabal/repos/baby_tracker_fe/dist
+tar -xzvf /home/jirazabal/repos/baby_tracker_fe/dist.tar.gz -C /home/jirazabal/repos/baby_tracker_fe
+# rm -rf /home/jirazabal/repos/baby_tracker_fe/dist.tar.gz
+echo "killing node"
+pkill node
 
 cd /home/jirazabal/repos/baby_tracker_fe
 npm run start &
