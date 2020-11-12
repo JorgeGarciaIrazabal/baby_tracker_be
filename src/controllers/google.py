@@ -67,11 +67,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "speech": f"Recoded feeding",
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
-            },
-            "suggestions": [
-                { "title": "yes"},
-                { "title": "no"},
-            ],
+            }
         },
     }
 

@@ -10,6 +10,9 @@ humanize
 
 
 # ssh root@vps65488.inmotionhosting.com
+# sudo -H -u TARGET_USER bash -c 'bash /usr/local/hadoop/sbin/start-dfs.sh'
+# su jirazabal
 # tar -zcvf dist.tar.gz dist/
 # scp dist.tar.gz root@vps65488.inmotionhosting.com:/home/jirazabal/repos/baby_tracker_fe
-
+# systemd example https://gist.github.com/ewenchou/be496b2b73be801fd85267ef5471458c
+# source activate <env name> && python xxx.py && source deactivate
