@@ -1,6 +1,6 @@
 #!/bin/bash
 cd /home/jirazabal/code/baby_tracker_fe
-npm run build
+# npm run build
 tar -czvf dist.tar.gz dist
 scp dist.tar.gz root@vps65488.inmotionhosting.com:/home/jirazabal/repos/baby_tracker_fe
 
