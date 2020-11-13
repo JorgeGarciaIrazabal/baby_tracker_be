@@ -131,3 +131,4 @@ dmypy.json
 
 baby_tracker_fe/node_modules/
 /src/openapi.json
+/dist/

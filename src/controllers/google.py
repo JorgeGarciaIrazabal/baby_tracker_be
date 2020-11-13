@@ -102,7 +102,7 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     }
 
 
-@app.post("/", include_in_schema=False)
+@app.post("/google", include_in_schema=False)
 async def google_action(request: Request, db: Session = Depends(get_db)):
     g_request = await request.json()
     print(g_request)
