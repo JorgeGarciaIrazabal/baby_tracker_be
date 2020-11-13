@@ -11,7 +11,7 @@ import tarfile
 from src.controllers import *
 from src.app import app
 
-DIST_PATH = Path("/home/jirazabal/code/baby_tracker_be/dist")
+DIST_PATH = Path(__file__).parent.parent / "dist"
 DIST_TAR_PATH = DIST_PATH.parent / "dist.tar.gz"
 
 
@@ -46,6 +46,7 @@ def read_root():
 
 
 if DIST_TAR_PATH.exists():
+    print("extracting frontend")
     tar = tarfile.open(DIST_TAR_PATH)
     shutil.rmtree(DIST_PATH, ignore_errors=True)
     tar.extractall(str(DIST_PATH.parent))
