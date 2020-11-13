@@ -21,15 +21,20 @@ class INTENTS(Enum):
 
 
 def show_list(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"],
-                 "languageCode": ""
-                 }
+    g_session = {
+        "id": g_request["session"]["id"],
+        "params": g_request["session"]["params"],
+        "languageCode": "",
+    }
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = f"Feeding did already started at {feed.start_at}"
         return {
             "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            "prompt": {
+                "override": True,
+                "firstSimple": {"speech": message, "text": message},
+            },
         }
     feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
     db.add(feed)
@@ -37,24 +42,34 @@ def show_list(db: Session, g_request: dict, baby: Baby):
     return {
         "session": g_session,
         "prompt": {
-            "override": True, "firstSimple": {
+            "override": True,
+            "firstSimple": {
                 "speech": f"Recoded feeding",
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
-            }
+            },
         },
     }
 
 
 def feeding(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": g_request["session"]["params"],
-                 "languageCode": ""
-                 }
+    g_session = {
+        "id": g_request["session"]["id"],
+        "params": g_request["session"]["params"],
+        "languageCode": "",
+    }
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
-        message = f"Feeding did already started at {feed.start_at}"
+        message = f"Feeding did already started at {humanize.naturaldate(feed.start_at)}"
         return {
             "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            "prompt": {
+                "override": True,
+                "firstSimple": {"speech": message, "text": message},
+                "suggestions": [
+                    {"title": "yes"},
+                    {"title": "no"},
+                ],
+            },
         }
     feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
     feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby.id)[:4]
@@ -67,7 +82,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "speech": f"Recoded feeding",
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
-            }
+            },
         },
     }
 
@@ -76,19 +91,25 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
         g_session["params"]["message_type"] = "NO_STARTING_FEEDING"
-        g_session["params"]["milliliters"] = g_request["intent"]["params"]["milliliters"][
-            "resolved"]
-        message = f"No feeding started"
+        g_session["params"]["milliliters"] = g_request["intent"]["params"][
+            "milliliters"
+        ]["resolved"]
+        message = f"No feeding started."
         return {
             "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            "prompt": {
+                "override": True,
+                "firstSimple": {"speech": message, "text": message},
+            },
         }
     feed = db.query(Feed).filter_by(baby=baby, end_at=None).one()
     feed.amount = g_request["intent"]["params"]["milliliters"]["resolved"]
     feed.end_at = datetime.utcnow()
     db.add(feed)
     db.commit()
-    human_time = humanize.precisedelta(feed.end_at - feed.start_at, minimum_unit="minutes")
+    human_time = humanize.precisedelta(
+        feed.end_at - feed.start_at, minimum_unit="minutes"
+    )
 
     return {
         "session": g_session,
@@ -96,8 +117,8 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "firstSimple": {
                 "speech": f"Finished recoding feeding",
-                "text": f"Finished recording feeding for {human_time} on {baby.name} "
-            }
+                "text": f"Finished recording feeding for {human_time} on {baby.name} ",
+            },
         },
     }
 
@@ -111,14 +132,23 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
     intent_name = g_request["handler"]["name"]
 
     if "authorization" in request.headers:
-        user = jwt.decode(request.headers["authorization"], verify=False, algorithms=["RS256"])
+        user = jwt.decode(
+            request.headers["authorization"], verify=False, algorithms=["RS256"]
+        )
         parent = db.query(Parent).filter_by(email=user["email"]).one()
-        baby = db.query(Baby).filter((Baby.father == parent) | (Baby.mother == parent)).one()
+        baby = (
+            db.query(Baby)
+            .filter((Baby.father == parent) | (Baby.mother == parent))
+            .one()
+        )
     else:
         message = "You need to be authorized to track baby"
         return {
             "session": g_session,
-            "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+            "prompt": {
+                "override": True,
+                "firstSimple": {"speech": message, "text": message},
+            },
         }
 
     if intent_name == INTENTS.FEED.value:
@@ -130,5 +160,8 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
     message = f"{intent_query} recorded"
     return {
         "session": g_session,
-        "prompt": {"override": True, "firstSimple": {"speech": message, "text": message}},
+        "prompt": {
+            "override": True,
+            "firstSimple": {"speech": message, "text": message},
+        },
     }
