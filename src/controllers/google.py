@@ -21,7 +21,7 @@ class INTENTS(Enum):
 
 
 def _get_last_feeds(db: Session, baby: Baby):
-    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby=baby)[:3]
+    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby=baby)[:4]
 
     rows = []
     for feed in feeds:
@@ -48,8 +48,8 @@ def _get_last_feeds(db: Session, baby: Baby):
                 dict(header="Amount"),
             ],
             rows=rows,
-            subtitle="Table Subtitle",
-            title="Table Title",
+            subtitle=f"last feedings for {baby.name}",
+            title="Feddings",
         )
     )
 
@@ -60,27 +60,16 @@ def show_list(db: Session, g_request: dict, baby: Baby):
         "params": g_request["session"]["params"],
         "languageCode": "",
     }
-    if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
-        feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
-        message = f"Feeding did already started at {feed.start_at}"
-        return {
-            "session": g_session,
-            "prompt": {
-                "override": True,
-                "firstSimple": {"speech": message, "text": message},
-            },
-        }
-    feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
-    db.add(feed)
-    db.commit()
+
     return {
         "session": g_session,
         "prompt": {
             "override": True,
             "firstSimple": {
-                "speech": f"Recoded feeding",
-                "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
+                "speech": f"Listing Feedings",
+                "text": f"Listing Feedings",
             },
+            "content": _get_last_feeds(db=db, baby=baby),
         },
     }
 
@@ -94,7 +83,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = (
-            f"Feeding did already started at "
+            f"Feeding did already started "
             f"{humanize.naturaltime(feed.start_at, when=datetime.utcnow())}"
         )
         return {
@@ -106,7 +95,6 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             },
         }
     feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
-    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby.id)[:4]
     db.add(feed)
     db.commit()
     return {
@@ -190,6 +178,9 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
 
     if intent_name == INTENTS.FEED_END.value:
         return feeding_end(db, g_request, baby)
+
+    if intent_name == INTENTS.SHOW_LIST.value:
+        return show_list(db, g_request, baby)
 
     message = f"{intent_query} recorded"
     return {
