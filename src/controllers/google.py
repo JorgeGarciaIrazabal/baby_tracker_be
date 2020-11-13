@@ -59,16 +59,78 @@ def feeding(db: Session, g_request: dict, baby: Baby):
     }
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
-        message = f"Feeding did already started at {humanize.naturaldate(feed.start_at)}"
+        message = f"Feeding did already started at " \
+                  f"{humanize.naturaltime(feed.start_at, when=datetime.utcnow())}"
         return {
             "session": g_session,
             "prompt": {
                 "override": True,
                 "firstSimple": {"speech": message, "text": message},
-                "suggestions": [
-                    {"title": "yes"},
-                    {"title": "no"},
-                ],
+                "content": {
+                    "table": {
+                        "button": {},
+                        "columns": [
+                            {
+                                "header": "Column A"
+                            },
+                            {
+                                "header": "Column B"
+                            },
+                            {
+                                "header": "Column C"
+                            }
+                        ],
+                        "image": {
+                            "alt": "Google Assistant logo",
+                            "height": 0,
+                            "url": "https://developers.google.com/assistant/assistant_96.png",
+                            "width": 0
+                        },
+                        "rows": [
+                            {
+                                "cells": [
+                                    {
+                                        "text": "A1"
+                                    },
+                                    {
+                                        "text": "B1"
+                                    },
+                                    {
+                                        "text": "C1"
+                                    }
+                                ]
+                            },
+                            {
+                                "cells": [
+                                    {
+                                        "text": "A2"
+                                    },
+                                    {
+                                        "text": "B2"
+                                    },
+                                    {
+                                        "text": "C2"
+                                    }
+                                ]
+                            },
+                            {
+                                "cells": [
+                                    {
+                                        "text": "A3"
+                                    },
+                                    {
+                                        "text": "B3"
+                                    },
+                                    {
+                                        "text": "C3"
+                                    }
+                                ]
+                            }
+                        ],
+                        "subtitle": "Table Subtitle",
+                        "title": "Table Title"
+                    }
+                },
             },
         }
     feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
