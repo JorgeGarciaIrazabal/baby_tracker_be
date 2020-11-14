@@ -18,6 +18,7 @@ class INTENTS(Enum):
     POOP = "POOP"
     PEE = "PEE"
     SHOW_LIST = "SHOW_LIST"
+    CREATE_USERS = "create_users"
 
 
 def _get_last_feeds(db: Session, baby: Baby):
@@ -163,6 +164,14 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
     g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
     intent_query = g_request["intent"]["query"]
     intent_name = g_request["handler"]["name"]
+
+    if intent_name == INTENTS.CREATE_USERS.value:
+        return {
+            "session": g_session,
+            "prompt": {
+                "override": False,
+            },
+        }
 
     if "authorization" in request.headers:
         user = jwt.decode(
