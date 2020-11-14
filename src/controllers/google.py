@@ -74,6 +74,14 @@ def show_list(db: Session, g_request: dict, baby: Baby):
             },
             "content": last_feeds,
         },
+        "scene": {
+            "name": "ShowList",
+            "slotFillingStatus": "UNSPECIFIED",
+            "slots": {},
+            "next": {
+                "name": "actions.scene.END_CONVERSATION"
+            }
+        }
     }
 
 
