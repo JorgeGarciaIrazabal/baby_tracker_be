@@ -140,8 +140,8 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True,
             "firstSimple": {
-                "speech": f"Finished recoding feeding",
-                "text": f"Finished recording feeding for {human_time} on {baby.name} ",
+                "speech": f"Finished feeding for {baby.name}, {feed.amount} ml",
+                "text": f"Finished recording feeding for {human_time} on {baby.name}, {feed.amount} ml",
             },
         },
     }
