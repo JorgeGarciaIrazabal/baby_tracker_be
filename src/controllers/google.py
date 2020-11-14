@@ -28,7 +28,7 @@ def _get_last_feeds(db: Session, baby: Baby):
         end_at = ""
         amount = ""
         if feed.end_at is not None:
-            end_at = humanize.naturaltime(feed.end_at, when=datetime.utcnow())
+            end_at = humanize.precisedelta(feed.end_at - feed.start_at, minimum_unit="minutes")
             amount = f"{feed.amount} ml"
         rows.append(
             dict(
@@ -44,12 +44,12 @@ def _get_last_feeds(db: Session, baby: Baby):
         table=dict(
             columns=[
                 dict(header="Started"),
-                dict(header="Ended"),
+                dict(header="Duration"),
                 dict(header="Amount"),
             ],
             rows=rows,
             subtitle=f"last feedings for {baby.name}",
-            title="Feddings",
+            title="Feedings",
         )
     )
 
@@ -60,16 +60,18 @@ def show_list(db: Session, g_request: dict, baby: Baby):
         "params": g_request["session"]["params"],
         "languageCode": "",
     }
+    last_feeds = _get_last_feeds(db=db, baby=baby)
 
     return {
         "session": g_session,
         "prompt": {
             "override": True,
-            "firstSimple": {
-                "speech": f"Listing Feedings",
+            "lastSimple": {
+                "speech": f"Last feeding was {last_feeds['table']['rows'][0]['cells'][0]}. \n"
+                          f"And the previous feeding was {last_feeds['table']['rows'][1]['cells'][0]}",
                 "text": f"Listing Feedings",
             },
-            "content": _get_last_feeds(db=db, baby=baby),
+            "content": last_feeds,
         },
     }
 
