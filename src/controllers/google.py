@@ -62,13 +62,14 @@ def show_list(db: Session, g_request: dict, baby: Baby):
     }
     last_feeds = _get_last_feeds(db=db, baby=baby)
 
+    rows = last_feeds['table']['rows']
     return {
         "session": g_session,
         "prompt": {
             "override": True,
             "lastSimple": {
-                "speech": f"Last feeding was {last_feeds['table']['rows'][0]['cells'][0]}. \n"
-                          f"And the previous feeding was {last_feeds['table']['rows'][1]['cells'][0]}",
+                "speech": f"Last feeding was {rows[0]['cells'][0]['text']}. \n"
+                          f"And the previous feeding was {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
