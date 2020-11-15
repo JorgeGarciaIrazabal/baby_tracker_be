@@ -1,4 +1,5 @@
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from fastapi import Depends
 from sqlalchemy import desc
@@ -10,8 +11,18 @@ from sqlalchemy.orm import Session
 
 
 @app.get("/baby/{baby_id}/feed", response_model=List[PFeed], tags=["api"])
-def get_baby_feeds(baby_id: int, db: Session = Depends(get_db)):
-    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter_by(baby_id=baby_id).all()
+def get_baby_feeds(
+    baby_id: int,
+    start_at: Optional[datetime] = None,
+    end_at: Optional[datetime] = None,
+    db: Session = Depends(get_db),
+):
+    current_filter = Feed.baby_id == baby_id
+    if start_at is not None:
+        current_filter &= Feed.start_at >= start_at
+    if end_at is not None:
+        current_filter &= Feed.end_at <= end_at
+    feeds = db.query(Feed).order_by(desc(Feed.start_at)).filter(current_filter).all()
     return [PFeed.from_orm(feed) for feed in feeds]
 
 

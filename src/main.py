@@ -65,10 +65,8 @@ if __name__ == "__main__":
         json.dump(app.openapi(), f)
     print(f"local_id: http://{get_ip()}:9001")
     uvicorn.run(
-        app,
+        "src.main:app",
         host="0.0.0.0",
         port=9001,
+        reload=True
     )
-else:
-    tar = tarfile.open(str(DIST_PATH.parent / "dist.tar.gz"))
-    tar.extractall(str(DIST_PATH.parent))

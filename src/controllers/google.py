@@ -11,6 +11,15 @@ from starlette.requests import Request
 from src.app import app, get_db
 from src.models import Baby, Feed, FeedTypes, Parent
 
+transfer_to_end_conversation = {
+    "name": "ShowList",
+    "slotFillingStatus": "UNSPECIFIED",
+    "slots": {},
+    "next": {
+        "name": "actions.scene.END_CONVERSATION"
+    }
+}
+
 
 class INTENTS(Enum):
     FEED = "FEED"
@@ -29,7 +38,7 @@ def _get_last_feeds(db: Session, baby: Baby):
         end_at = ""
         amount = ""
         if feed.end_at is not None:
-            end_at = humanize.precisedelta(feed.end_at - feed.start_at, minimum_unit="minutes")
+            end_at = humanize.precisedelta(feed.end_at - feed.start_at, minimum_unit="seconds")
             amount = f"{feed.amount} ml"
         rows.append(
             dict(
@@ -75,14 +84,7 @@ def show_list(db: Session, g_request: dict, baby: Baby):
             },
             "content": last_feeds,
         },
-        "scene": {
-            "name": "ShowList",
-            "slotFillingStatus": "UNSPECIFIED",
-            "slots": {},
-            "next": {
-                "name": "actions.scene.END_CONVERSATION"
-            }
-        }
+        "scene": transfer_to_end_conversation
     }
 
 
@@ -142,7 +144,7 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     db.add(feed)
     db.commit()
     human_time = humanize.precisedelta(
-        feed.end_at - feed.start_at, minimum_unit="minutes"
+        feed.end_at - feed.start_at, minimum_unit="seconds"
     )
 
     return {
