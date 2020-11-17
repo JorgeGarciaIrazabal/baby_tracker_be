@@ -1,32 +1,20 @@
-#%%
-from datetime import datetime
+from passlib.hash import sha256_crypt
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from src.app import Session
+from src.models import Parent
+from src.services.auth import encrypt_password
 
-from src.models import Base, Feed, FeedTypes, Parent, Baby
+password = sha256_crypt.hash("password")
+password2 = sha256_crypt.hash("password")
 
-engine = create_engine("postgresql://flatiron:flatiron@localhost:6432/data", echo=True)
-Base.metadata.create_all(engine)
+hash = '$5$rounds=535000$fflD0vlqYhDw604y$BUnK2G5Wixtt0cPFpxqYQxghe5nxA2Tn/vRyvTsyvG4'
+print(password)
+print(password2)
 
-Session = sessionmaker(bind=engine)
-Session.configure(bind=engine)
-session = Session()
-
-#%%
-father = Parent(email="j1@.com", name="j1")
-session.add(father)
-
-baby = Baby(birth_date=datetime.utcnow(), name="b1", father=father)
-session.add(baby)
-session.commit()
-
-
-#%%
-b1 = session.query(Baby).filter((Baby.father == father) | (Baby.mother == father)).one()
-
-#%%
-baby = session.query(Baby).filter_by(name="b1").one()
-feed = Feed(baby=baby, type=FeedTypes.FORMULA)
-session.add(feed)
-session.commit()
+if __name__ == '__main__':
+    db = Session()
+    for parent in db.query(Parent).all():
+        parent.password = encrypt_password(parent.password)
+        db.add(parent)
+    db.commit()
+    db.close()

@@ -75,7 +75,7 @@ class Poop(BTMixin, Base):
 class FeedConfig(BaseConfig):
     orm_mode = True
     json_encoders = {
-        datetime: lambda d:  d.replace(tzinfo=timezone.utc).isoformat()
+        datetime: lambda d: d.replace(tzinfo=timezone.utc).isoformat()
     }
 
 
@@ -84,3 +84,8 @@ PBaby = sqlalchemy_to_pydantic(Baby)
 PFeed = sqlalchemy_to_pydantic(Feed, config=FeedConfig)
 PPee = sqlalchemy_to_pydantic(Pee)
 PPoop = sqlalchemy_to_pydantic(Poop)
+
+
+class ParentWithToken(BaseModel):
+    parent: PParent
+    token: str

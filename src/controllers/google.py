@@ -15,9 +15,7 @@ transfer_to_end_conversation = {
     "name": "ShowList",
     "slotFillingStatus": "UNSPECIFIED",
     "slots": {},
-    "next": {
-        "name": "actions.scene.END_CONVERSATION"
-    }
+    "next": {"name": "actions.scene.END_CONVERSATION"},
 }
 
 
@@ -38,12 +36,20 @@ def _get_last_feeds(db: Session, baby: Baby):
         end_at = ""
         amount = ""
         if feed.end_at is not None:
-            end_at = humanize.precisedelta(feed.end_at - feed.start_at, minimum_unit="seconds")
+            end_at = humanize.precisedelta(
+                feed.end_at - feed.start_at, minimum_unit="minutes", format="%0f"
+            )
             amount = f"{feed.amount} ml"
         rows.append(
             dict(
                 cells=[
-                    dict(text=humanize.naturaltime(feed.start_at, when=datetime.utcnow())),
+                    dict(
+                        text=humanize.naturaltime(
+                            feed.start_at,
+                            when=datetime.utcnow(),
+                            minimum_unit="seconds",
+                        )
+                    ),
                     dict(text=end_at),
                     dict(text=amount),
                 ]
@@ -72,19 +78,19 @@ def show_list(db: Session, g_request: dict, baby: Baby):
     }
     last_feeds = _get_last_feeds(db=db, baby=baby)
 
-    rows = last_feeds['table']['rows']
+    rows = last_feeds["table"]["rows"]
     return {
         "session": g_session,
         "prompt": {
             "override": True,
             "lastSimple": {
                 "speech": f"Last feeding was {rows[0]['cells'][0]['text']}. \n"
-                          f"And the previous feeding was {rows[1]['cells'][0]['text']}",
+                f"And the previous feeding was {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
         },
-        "scene": transfer_to_end_conversation
+        "scene": transfer_to_end_conversation,
     }
 
 

@@ -9,7 +9,7 @@ from starlette.staticfiles import StaticFiles
 import tarfile
 
 from src.controllers import *
-from src.app import app
+from src.app import app, custom_openapi
 
 DIST_PATH = Path(__file__).parent.parent / "dist"
 DIST_TAR_PATH = DIST_PATH.parent / "dist.tar.gz"
@@ -43,6 +43,9 @@ def ping():
 @app.get("/login", response_class=HTMLResponse, include_in_schema=False)
 def read_root():
     return (DIST_PATH / "index.html").read_text()
+
+
+app.openapi = custom_openapi
 
 
 if DIST_TAR_PATH.exists():
