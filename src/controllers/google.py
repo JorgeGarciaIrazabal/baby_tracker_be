@@ -48,7 +48,8 @@ def _get_last_feeds(db: Session, baby: Baby):
                             feed.start_at - datetime.utcnow(),
                             minimum_unit="minutes",
                             format="%0.0f",
-                        ),
+                        )
+                        + " ago",
                     ),
                     dict(text=end_at),
                     dict(text=amount),
@@ -160,7 +161,8 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "firstSimple": {
                 "speech": f"Finished recording feeding for {baby.name}, {feed.amount} ml",
-                "text": f"Finished recording feeding for {human_time} on {baby.name}, {feed.amount} ml",
+                "text": f"Finished recording feeding for {human_time} on {baby.name}, "
+                f"{feed.amount} ml",
             },
         },
         "scene": transfer_to_end_conversation,
