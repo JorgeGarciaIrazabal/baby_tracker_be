@@ -37,18 +37,18 @@ def _get_last_feeds(db: Session, baby: Baby):
         amount = ""
         if feed.end_at is not None:
             end_at = humanize.precisedelta(
-                feed.end_at - feed.start_at, minimum_unit="minutes", format="%0f"
+                feed.end_at - feed.start_at, minimum_unit="minutes", format="%0.0f"
             )
             amount = f"{feed.amount} ml"
         rows.append(
             dict(
                 cells=[
                     dict(
-                        text=humanize.naturaltime(
-                            feed.start_at,
-                            when=datetime.utcnow(),
-                            minimum_unit="seconds",
-                        )
+                        text=humanize.precisedelta(
+                            feed.start_at - datetime.utcnow(),
+                            minimum_unit="minutes",
+                            format="%0.0f",
+                        ),
                     ),
                     dict(text=end_at),
                     dict(text=amount),
@@ -126,6 +126,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
                 "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
             },
         },
+        "scene": transfer_to_end_conversation,
     }
 
 
@@ -158,10 +159,11 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True,
             "firstSimple": {
-                "speech": f"Finished feeding for {baby.name}, {feed.amount} ml",
+                "speech": f"Finished recording feeding for {baby.name}, {feed.amount} ml",
                 "text": f"Finished recording feeding for {human_time} on {baby.name}, {feed.amount} ml",
             },
         },
+        "scene": transfer_to_end_conversation,
     }
 
 
