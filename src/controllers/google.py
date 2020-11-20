@@ -104,7 +104,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = (
-            f"Feeding did already started "
+            f"Feeding already started "
             f"{humanize.naturaltime(feed.start_at, when=datetime.utcnow())}"
         )
         return {
@@ -123,8 +123,8 @@ def feeding(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True,
             "firstSimple": {
-                "speech": f"Recoded feeding",
-                "text": f"Recoded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
+                "speech": f"Starting feeding, yummy!",
+                "text": f"Recorded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
             },
         },
         "scene": transfer_to_end_conversation,
@@ -152,7 +152,9 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
     db.add(feed)
     db.commit()
     human_time = humanize.precisedelta(
-        feed.end_at - feed.start_at, minimum_unit="seconds"
+        feed.end_at - feed.start_at,
+        minimum_unit="minutes",
+        format="%0.0f",
     )
 
     return {
