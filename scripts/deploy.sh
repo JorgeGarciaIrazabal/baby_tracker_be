@@ -1,5 +1,6 @@
 #!/bin/bash
 cd /home/jirazabal/code/baby_tracker_fe
+rm -rf dist/
 npm run build
 tar -czvf dist.tar.gz dist
 mv dist.tar.gz  /home/jirazabal/code/baby_tracker_be/dist.tar.gz

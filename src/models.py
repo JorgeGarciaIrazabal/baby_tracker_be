@@ -18,6 +18,12 @@ class FeedTypes(enum.Enum):
     SOLID = 5
 
 
+class GrowthTypes(enum.Enum):
+    HEIGHT = "HEIGHT"
+    HEAD = "HEAD"
+    WEIGHT = "WEIGHT"
+
+
 class BTMixin:
     def update(self, model: BaseModel):
         kwargs = model.dict(exclude_none=True, exclude_unset=True, exclude_defaults=True)
@@ -72,18 +78,29 @@ class Poop(BTMixin, Base):
     baby = relationship("Baby", foreign_keys=[baby_id])
 
 
-class FeedConfig(BaseConfig):
+class Growth(BTMixin, Base):
+    __tablename__ = "growths"
+    id = Column(Integer, primary_key=True, nullable=True)
+    at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    baby_id = Column(Integer, ForeignKey("babies.id"))
+    baby = relationship("Baby", foreign_keys=[baby_id])
+    type = Column(Enum(GrowthTypes), nullable=False)
+    measure = Column(Integer)
+
+
+class PConfig(BaseConfig):
     orm_mode = True
     json_encoders = {
         datetime: lambda d: d.replace(tzinfo=timezone.utc).isoformat()
     }
 
 
-PParent = sqlalchemy_to_pydantic(Parent)
-PBaby = sqlalchemy_to_pydantic(Baby)
-PFeed = sqlalchemy_to_pydantic(Feed, config=FeedConfig)
-PPee = sqlalchemy_to_pydantic(Pee)
-PPoop = sqlalchemy_to_pydantic(Poop)
+PParent = sqlalchemy_to_pydantic(Parent, config=PConfig)
+PBaby = sqlalchemy_to_pydantic(Baby, config=PConfig)
+PFeed = sqlalchemy_to_pydantic(Feed, config=PConfig)
+PPee = sqlalchemy_to_pydantic(Pee, config=PConfig)
+PPoop = sqlalchemy_to_pydantic(Poop, config=PConfig)
+PGrowth = sqlalchemy_to_pydantic(Growth, config=PConfig)
 
 
 class ParentWithToken(BaseModel):

@@ -23,7 +23,7 @@ def get_baby_feeds(
     db: Session = Depends(get_db),
     auth: AuthJWT = Depends(),
 ):
-    # validate_baby_relationship(auth, baby_id)
+    validate_baby_relationship(auth, baby_id)
 
     current_filter = Feed.baby_id == baby_id
     if start_at is not None:
