@@ -88,6 +88,15 @@ class Growth(BTMixin, Base):
     measure = Column(Integer)
 
 
+class Sleep(BTMixin, Base):
+    __tablename__ = "sleeps"
+    id = Column(Integer, primary_key=True, nullable=True)
+    start_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    end_at = Column(DateTime, nullable=True)
+    baby_id = Column(Integer, ForeignKey("babies.id"))
+    baby = relationship("Baby", foreign_keys=[baby_id])
+
+
 class PConfig(BaseConfig):
     orm_mode = True
     json_encoders = {
@@ -101,6 +110,7 @@ PFeed = sqlalchemy_to_pydantic(Feed, config=PConfig)
 PPee = sqlalchemy_to_pydantic(Pee, config=PConfig)
 PPoop = sqlalchemy_to_pydantic(Poop, config=PConfig)
 PGrowth = sqlalchemy_to_pydantic(Growth, config=PConfig)
+PSleep = sqlalchemy_to_pydantic(Sleep, config=PConfig)
 
 
 class ParentWithToken(BaseModel):
