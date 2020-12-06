@@ -84,8 +84,8 @@ def show_list(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True,
             "lastSimple": {
-                "speech": f"Last feeding was {rows[0]['cells'][0]['text']}. \n"
-                f"And the previous feeding was {rows[1]['cells'][0]['text']}",
+                "speech": f"Last feeding was {rows[0]['cells'][2]['text']} ml, {rows[0]['cells'][0]['text']}. \n"
+                f"And the previous feeding was {rows[1]['cells'][2]['text']} ml, {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
@@ -113,15 +113,28 @@ def feeding(db: Session, g_request: dict, baby: Baby):
     feed = Feed(baby=baby, type=FeedTypes.FORMULA, amount=0)
     db.add(feed)
     db.commit()
+    variants = [
+        {
+            "speech": f"Starting feeding, yummy in my tommy!",
+            "text": f"Started feeding at {feed.start_at.strftime('%-I:%M %p')} for "
+            f"{baby.name}",
+        },
+        {
+            "speech": f"Are you hungry {baby.name}? yes you are!",
+            "text": f"Started feeding at {feed.start_at.strftime('%-I:%M %p')} for "
+            f"{baby.name}",
+        },
+        {
+            "speech": f"Yummy, yummy milk!",
+            "text": f"Started feeding at {feed.start_at.strftime('%-I:%M %p')} for "
+            f"{baby.name}",
+        }
+    ]
     return {
         "session": g_session,
         "prompt": {
             "override": True,
-            "firstSimple": {
-                "speech": f"Starting feeding, yummy!",
-                "text": f"Recorded feeding at {feed.start_at.strftime('%-I:%M %p')} for "
-                f"{baby.name}",
-            },
+            "firstSimple": random.choice(variants),
         },
         "scene": transfer_to_end_conversation,
     }
@@ -183,16 +196,16 @@ def pooping(db: Session, g_request: dict, baby: Baby):
     db.commit()
     variants = [
         {
-            "speech": f"Poop recorded, did that feel good {baby.name}?",
-            "text": f"Pee Recorded",
+            "speech": f"Pooping, feeling better now {baby.name}?",
+            "text": f"Poop Recorded",
         },
         {
-            "speech": f"Uhh stinky",
-            "text": f"Pee Recorded",
+            "speech": f"uuggg stinky",
+            "text": f"Poop Recorded",
         },
         {
-            "speech": f"number 2 completed!!",
-            "text": f"Pee Recorded",
+            "speech": f"Number 2 completed!! Good job {baby.name}!",
+            "text": f"Poop Recorded",
         },
     ]
     return {
