@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from src.app import app, get_db
-from src.models import Baby, Feed, FeedTypes, Parent
+from src.models import Baby, Feed, FeedTypes, Parent, Poop
 
 transfer_to_end_conversation = {
     "name": "ShowList",
@@ -24,6 +24,8 @@ class INTENTS(Enum):
     FEED_END = "FEED_END"
     POOP = "POOP"
     PEE = "PEE"
+    SLEEP = "SLEEP"
+    SLEEP_END = "SLEEP_END"
     SHOW_LIST = "SHOW_LIST"
     CREATE_USERS = "create_users"
 
@@ -49,7 +51,7 @@ def _get_last_feeds(db: Session, baby: Baby):
                             minimum_unit="minutes",
                             format="%0.0f",
                         )
-                        + " ago",
+                             + " ago",
                     ),
                     dict(text=end_at),
                     dict(text=amount),
@@ -72,11 +74,7 @@ def _get_last_feeds(db: Session, baby: Baby):
 
 
 def show_list(db: Session, g_request: dict, baby: Baby):
-    g_session = {
-        "id": g_request["session"]["id"],
-        "params": g_request["session"]["params"],
-        "languageCode": "",
-    }
+    g_session = build_g_session(g_request)
     last_feeds = _get_last_feeds(db=db, baby=baby)
 
     rows = last_feeds["table"]["rows"]
@@ -86,7 +84,7 @@ def show_list(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "lastSimple": {
                 "speech": f"Last feeding was {rows[0]['cells'][0]['text']}. \n"
-                f"And the previous feeding was {rows[1]['cells'][0]['text']}",
+                          f"And the previous feeding was {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
@@ -96,11 +94,7 @@ def show_list(db: Session, g_request: dict, baby: Baby):
 
 
 def feeding(db: Session, g_request: dict, baby: Baby):
-    g_session = {
-        "id": g_request["session"]["id"],
-        "params": g_request["session"]["params"],
-        "languageCode": "",
-    }
+    g_session = build_g_session(g_request)
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() > 0:
         feed = db.query(Feed).filter_by(baby=baby, end_at=None).first()
         message = (
@@ -124,15 +118,25 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "firstSimple": {
                 "speech": f"Starting feeding, yummy!",
-                "text": f"Recorded feeding at {feed.start_at.strftime('%-I:%M %p')} for {baby.name}",
+                "text": f"Recorded feeding at {feed.start_at.strftime('%-I:%M %p')} for "
+                        f"{baby.name}",
             },
         },
         "scene": transfer_to_end_conversation,
     }
 
 
+def build_g_session(g_request):
+    g_session = {
+        "id": g_request["session"]["id"],
+        "params": g_request["session"]["params"],
+        "languageCode": "",
+    }
+    return g_session
+
+
 def feeding_end(db: Session, g_request: dict, baby: Baby):
-    g_session = {"id": g_request["session"]["id"], "params": {}, "languageCode": ""}
+    g_session = build_g_session(g_request)
     if db.query(Feed).filter_by(baby=baby, end_at=None).count() == 0:
         g_session["params"]["message_type"] = "NO_STARTING_FEEDING"
         g_session["params"]["milliliters"] = g_request["intent"]["params"][
@@ -164,7 +168,51 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "speech": f"Finished recording feeding for {baby.name}, {feed.amount} ml",
                 "text": f"Finished recording feeding for {human_time} on {baby.name}, "
-                f"{feed.amount} ml",
+                        f"{feed.amount} ml",
+            },
+        },
+        "scene": transfer_to_end_conversation,
+    }
+
+
+def pooping(db: Session, g_request: dict, baby: Baby):
+    g_session = build_g_session(g_request)
+    poop = Poop(baby=baby)
+    db.add(poop)
+    db.commit()
+    return {
+        "session": g_session,
+        "prompt": {
+            "override": True,
+            "firstSimple": {
+                "variants": [
+                    {"speech": f"Poop recorded, did that feel good {baby.name}?"},
+                    {"speech": f"Uhh stinky"},
+                    {"speech": f"number 2 completed!!"},
+                ],
+                "text": f"Poop Recorded",
+            },
+        },
+        "scene": transfer_to_end_conversation,
+    }
+
+
+def peeing(db: Session, g_request: dict, baby: Baby):
+    g_session = build_g_session(g_request)
+    poop = Poop(baby=baby)
+    db.add(poop)
+    db.commit()
+    return {
+        "session": g_session,
+        "prompt": {
+            "override": True,
+            "firstSimple": {
+                "variants": [
+                    {"speech": f"{baby.name}, did you get your diaper wet? yes you did!!"},
+                    {"speech": f"Diaper wet removed, are you dry now {baby.name}?"},
+                    {"speech": f"number 1 completed!!"},
+                ],
+                "text": f"Pee Recorded",
             },
         },
         "scene": transfer_to_end_conversation,
@@ -194,8 +242,8 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
         parent = db.query(Parent).filter_by(email=user["email"]).one()
         baby = (
             db.query(Baby)
-            .filter((Baby.father == parent) | (Baby.mother == parent))
-            .one()
+                .filter((Baby.parent_ids.contains(parent.id)))
+                .one()
         )
     else:
         message = "You need to be authorized to track baby"
@@ -215,6 +263,12 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
 
     if intent_name == INTENTS.SHOW_LIST.value:
         return show_list(db, g_request, baby)
+
+    if intent_name == INTENTS.POOP.value:
+        return pooping(db, g_request, baby)
+
+    if intent_name == INTENTS.PEE.value:
+        return peeing(db, g_request, baby)
 
     message = f"{intent_query} recorded"
     return {
