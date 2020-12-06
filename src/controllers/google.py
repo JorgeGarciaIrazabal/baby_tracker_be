@@ -186,11 +186,13 @@ def pooping(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "firstSimple": {
                 "variants": [
-                    {"speech": f"Poop recorded, did that feel good {baby.name}?"},
-                    {"speech": f"Uhh stinky"},
-                    {"speech": f"number 2 completed!!"},
+                    {"speech": f"Poop recorded, did that feel good {baby.name}?",
+                     "text": f"Pee Recorded",},
+                    {"speech": f"Uhh stinky",
+                     "text": f"Pee Recorded",},
+                    {"speech": f"number 2 completed!!",
+                     "text": f"Pee Recorded",},
                 ],
-                "text": f"Poop Recorded",
             },
         },
         "scene": transfer_to_end_conversation,
@@ -209,12 +211,18 @@ def peeing(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "variants": [
                     {
-                        "speech": f"{baby.name}, did you get your diaper wet? yes you did!!"
+                        "speech": f"{baby.name}, did you get your diaper wet? yes you did!!",
+                        "text": f"Pee Recorded",
                     },
-                    {"speech": f"Diaper wet removed, are you dry now {baby.name}?"},
-                    {"speech": f"number 1 completed!!"},
+                    {
+                        "speech": f"Diaper wet removed, are you dry now {baby.name}?",
+                        "text": f"Pee Recorded",
+                    },
+                    {
+                        "speech": f"number 1 completed!!",
+                        "text": f"Pee Recorded",
+                    },
                 ],
-                "text": f"Pee Recorded",
             },
         },
         "scene": transfer_to_end_conversation,
