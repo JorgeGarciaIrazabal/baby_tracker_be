@@ -24,7 +24,7 @@ def get_parent(auth: AuthJWT = Depends()):
 @app.get("/baby/parent/{id}", response_model=PBaby, tags=["api"])
 def get_parents_baby(id: int, db: Session = Depends(get_db), auth: AuthJWT = Depends()):
     auth.jwt_required()
-    baby = db.query(Baby).filter((Baby.father_id == id) | (Baby.mother_id == id)).one()
+    baby = db.query(Baby).filter(Baby.parent_ids.contains([id])).one()
     validate_baby_relationship(auth, baby.id)
     return PBaby.from_orm(baby)
 
@@ -39,11 +39,7 @@ def remove_parents_baby(
     validate_baby_relationship(auth, baby_id)
 
     baby = db.query(Baby).get(baby_id).one()
-    if baby.father_id == parent_id:
-        baby.father_id = None
-
-    if baby.mother_id == parent_id:
-        baby.mother_id = None
+    baby.parent_ids.remove(parent_id)
     db.add(baby)
     db.commit()
     return PBaby.from_orm(baby)

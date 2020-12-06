@@ -2,10 +2,13 @@ import enum
 from datetime import datetime, timezone
 
 from pydantic import BaseConfig, BaseModel
-from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.mutable import Mutable
 from sqlalchemy.orm import relationship
+
+from src.services.sqlalchemy_pydantic import sqlalchemy_to_pydantic
 
 Base = declarative_base()
 
@@ -22,6 +25,35 @@ class GrowthTypes(enum.Enum):
     HEIGHT = "HEIGHT"
     HEAD = "HEAD"
     WEIGHT = "WEIGHT"
+
+
+class MutableList(Mutable, list):
+
+    def __setitem__(self, key, value):
+        list.__setitem__(self, key, value)
+        self.changed()
+
+    def __delitem__(self, key):
+        list.__delitem__(self, key)
+        self.changed()
+
+    def append(self, value):
+        list.append(self, value)
+        self.changed()
+
+    def pop(self, index=0):
+        value = list.pop(self, index)
+        self.changed()
+        return value
+
+    @classmethod
+    def coerce(cls, key, value):
+        if not isinstance(value, MutableList):
+            if isinstance(value, list):
+                return MutableList(value)
+            return Mutable.coerce(key, value)
+        else:
+            return value
 
 
 class BTMixin:
@@ -45,10 +77,7 @@ class Baby(BTMixin, Base):
     id = Column(Integer, primary_key=True, nullable=True)
     birth_date = Column(DateTime, nullable=False)
     name = Column(String, nullable=False)
-    father_id = Column(Integer, ForeignKey("parents.id"))
-    mother_id = Column(Integer, ForeignKey("parents.id"))
-    father = relationship("Parent", foreign_keys=[father_id])
-    mother = relationship("Parent", foreign_keys=[mother_id])
+    parent_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=dict)
 
 
 class Feed(BTMixin, Base):
@@ -104,8 +133,8 @@ class PConfig(BaseConfig):
     }
 
 
-PParent = sqlalchemy_to_pydantic(Parent, config=PConfig)
 PBaby = sqlalchemy_to_pydantic(Baby, config=PConfig)
+PParent = sqlalchemy_to_pydantic(Parent, config=PConfig)
 PFeed = sqlalchemy_to_pydantic(Feed, config=PConfig)
 PPee = sqlalchemy_to_pydantic(Pee, config=PConfig)
 PPoop = sqlalchemy_to_pydantic(Poop, config=PConfig)

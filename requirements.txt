@@ -4,6 +4,7 @@
 #
 #    pip-compile requirements.txt
 #
+--extra-index-url https://artifactory.prod.flatiron.io/api/pypi/pypi-local/simple
 
 aiofiles==0.6.0           # via -r requirements.txt
 click==7.1.2              # via -r requirements.txt, uvicorn
@@ -14,10 +15,12 @@ humanize==3.1.0           # via -r requirements.txt
 passlib==1.7.4            # via -r requirements.txt
 psycopg2-binary==2.8.6    # via -r requirements.txt
 pycryptodome==3.9.9       # via -r requirements.txt
-pydantic-sqlalchemy==0.0.7  # via -r requirements.txt
-pydantic==1.7.2           # via -r requirements.txt, fastapi, pydantic-sqlalchemy
+pydantic==1.7.2           # via -r requirements.txt, fastapi
 pyjwt==1.7.1              # via -r requirements.txt, fastapi-jwt-auth
-sqlalchemy==1.3.20        # via -r requirements.txt, pydantic-sqlalchemy
+python-http-client==3.3.1  # via sendgrid
+sendgrid==6.4.7           # via -r requirements.txt
+sqlalchemy==1.3.20        # via -r requirements.txt
+starkbank-ecdsa==1.1.0    # via sendgrid
 starlette==0.13.6         # via -r requirements.txt, fastapi
 uvicorn==0.12.2           # via -r requirements.txt
 

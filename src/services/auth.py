@@ -55,7 +55,7 @@ def validate_baby_relationship(auth: AuthJWT, baby_id: int):
     session = Session()
     try:
         baby: Baby = session.query(Baby).get(baby_id)
-        if baby.father_id != parent.id and baby.mother_id != parent.id:
+        if parent.id not in baby.parent_ids:
             raise HTTPException(
                 status_code=HTTPStatus.PRECONDITION_FAILED.value,
                 detail="No relationship with baby",

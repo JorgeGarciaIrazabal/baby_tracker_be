@@ -9,16 +9,11 @@ from src.models import Baby, PBaby, Parent
 from src.services.auth import get_parent_from_token, validate_baby_relationship
 
 
-def _validate_p_baby_with_parent(p_baby, parent):
-    if p_baby.father_id != parent.id and p_baby.mother_id != parent.id:
+def _validate_p_baby_with_parent(p_baby: PBaby, parent: Parent):
+    if parent.id not in p_baby.parent_ids:
         raise HTTPException(
             status_code=HTTPStatus.PRECONDITION_FAILED.value,
             detail="No relationship with baby",
-        )
-    if p_baby.father_id is not None and p_baby.mother_id is not None:
-        raise HTTPException(
-            status_code=HTTPStatus.PRECONDITION_FAILED.value,
-            detail="Baby can only be created with one parent",
         )
 
 
@@ -62,10 +57,8 @@ def new_parent_for_baby(
     validate_baby_relationship(auth, id)
 
     new_parent = db.query(Parent).filter_by(email=new_parent_email).one()
-    if baby.father_id is None:
-        baby.father = new_parent
-    if baby.mother_id is None:
-        baby.mother = new_parent
+    if new_parent.id not in baby.parent_ids:
+        baby.parent_ids.append(new_parent.id)
     db.add(baby)
     db.commit()
     return PBaby.from_orm(baby)
