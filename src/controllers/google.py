@@ -51,7 +51,7 @@ def _get_last_feeds(db: Session, baby: Baby):
                             minimum_unit="minutes",
                             format="%0.0f",
                         )
-                             + " ago",
+                        + " ago",
                     ),
                     dict(text=end_at),
                     dict(text=amount),
@@ -84,7 +84,7 @@ def show_list(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "lastSimple": {
                 "speech": f"Last feeding was {rows[0]['cells'][0]['text']}. \n"
-                          f"And the previous feeding was {rows[1]['cells'][0]['text']}",
+                f"And the previous feeding was {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
@@ -119,7 +119,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "speech": f"Starting feeding, yummy!",
                 "text": f"Recorded feeding at {feed.start_at.strftime('%-I:%M %p')} for "
-                        f"{baby.name}",
+                f"{baby.name}",
             },
         },
         "scene": transfer_to_end_conversation,
@@ -168,7 +168,7 @@ def feeding_end(db: Session, g_request: dict, baby: Baby):
             "firstSimple": {
                 "speech": f"Finished recording feeding for {baby.name}, {feed.amount} ml",
                 "text": f"Finished recording feeding for {human_time} on {baby.name}, "
-                        f"{feed.amount} ml",
+                f"{feed.amount} ml",
             },
         },
         "scene": transfer_to_end_conversation,
@@ -208,7 +208,9 @@ def peeing(db: Session, g_request: dict, baby: Baby):
             "override": True,
             "firstSimple": {
                 "variants": [
-                    {"speech": f"{baby.name}, did you get your diaper wet? yes you did!!"},
+                    {
+                        "speech": f"{baby.name}, did you get your diaper wet? yes you did!!"
+                    },
                     {"speech": f"Diaper wet removed, are you dry now {baby.name}?"},
                     {"speech": f"number 1 completed!!"},
                 ],
@@ -240,11 +242,7 @@ async def google_action(request: Request, db: Session = Depends(get_db)):
             request.headers["authorization"], verify=False, algorithms=["RS256"]
         )
         parent = db.query(Parent).filter_by(email=user["email"]).one()
-        baby = (
-            db.query(Baby)
-                .filter((Baby.parent_ids.contains(parent.id)))
-                .one()
-        )
+        baby = db.query(Baby).filter(Baby.parent_ids.contains([parent.id])).one()
     else:
         message = "You need to be authorized to track baby"
         return {
