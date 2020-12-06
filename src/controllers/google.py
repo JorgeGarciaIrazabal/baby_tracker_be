@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from src.app import app, get_db
-from src.models import Baby, Feed, FeedTypes, Parent, Poop
+from src.models import Baby, Feed, FeedTypes, Parent, Pee, Poop
 
 transfer_to_end_conversation = {
     "name": "ShowList",
@@ -84,8 +84,8 @@ def show_list(db: Session, g_request: dict, baby: Baby):
         "prompt": {
             "override": True,
             "lastSimple": {
-                "speech": f"Last feeding was {rows[0]['cells'][2]['text']} ml, {rows[0]['cells'][0]['text']}. \n"
-                f"And the previous feeding was {rows[1]['cells'][2]['text']} ml, {rows[1]['cells'][0]['text']}",
+                "speech": f"Last feeding was {rows[0]['cells'][2]['text']}, {rows[0]['cells'][0]['text']}. \n"
+                f"And the previous feeding was {rows[1]['cells'][2]['text']}, {rows[1]['cells'][0]['text']}",
                 "text": f"Listing Feedings",
             },
             "content": last_feeds,
@@ -220,8 +220,8 @@ def pooping(db: Session, g_request: dict, baby: Baby):
 
 def peeing(db: Session, g_request: dict, baby: Baby):
     g_session = build_g_session(g_request)
-    poop = Poop(baby=baby)
-    db.add(poop)
+    pee = Pee(baby=baby)
+    db.add(pee)
     db.commit()
     variants = [
         {
