@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+import random
 
 import humanize
 import jwt
@@ -180,20 +181,25 @@ def pooping(db: Session, g_request: dict, baby: Baby):
     poop = Poop(baby=baby)
     db.add(poop)
     db.commit()
+    variants = [
+        {
+            "speech": f"Poop recorded, did that feel good {baby.name}?",
+            "text": f"Pee Recorded",
+        },
+        {
+            "speech": f"Uhh stinky",
+            "text": f"Pee Recorded",
+        },
+        {
+            "speech": f"number 2 completed!!",
+            "text": f"Pee Recorded",
+        },
+    ]
     return {
         "session": g_session,
         "prompt": {
             "override": True,
-            "firstSimple": {
-                "variants": [
-                    {"speech": f"Poop recorded, did that feel good {baby.name}?",
-                     "text": f"Pee Recorded",},
-                    {"speech": f"Uhh stinky",
-                     "text": f"Pee Recorded",},
-                    {"speech": f"number 2 completed!!",
-                     "text": f"Pee Recorded",},
-                ],
-            },
+            "firstSimple": random.choice(variants),
         },
         "scene": transfer_to_end_conversation,
     }
@@ -204,26 +210,25 @@ def peeing(db: Session, g_request: dict, baby: Baby):
     poop = Poop(baby=baby)
     db.add(poop)
     db.commit()
+    variants = [
+        {
+            "speech": f"{baby.name}, did you get your diaper wet? yes you did!!",
+            "text": f"Pee Recorded",
+        },
+        {
+            "speech": f"Diaper wet removed, are you dry now {baby.name}?",
+            "text": f"Pee Recorded",
+        },
+        {
+            "speech": f"number 1 completed!!",
+            "text": f"Pee Recorded",
+        },
+    ]
     return {
         "session": g_session,
         "prompt": {
             "override": True,
-            "firstSimple": {
-                "variants": [
-                    {
-                        "speech": f"{baby.name}, did you get your diaper wet? yes you did!!",
-                        "text": f"Pee Recorded",
-                    },
-                    {
-                        "speech": f"Diaper wet removed, are you dry now {baby.name}?",
-                        "text": f"Pee Recorded",
-                    },
-                    {
-                        "speech": f"number 1 completed!!",
-                        "text": f"Pee Recorded",
-                    },
-                ],
-            },
+            "firstSimple": random.choice(variants),
         },
         "scene": transfer_to_end_conversation,
     }
