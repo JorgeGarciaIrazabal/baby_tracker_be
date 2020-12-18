@@ -115,7 +115,7 @@ def feeding(db: Session, g_request: dict, baby: Baby):
     db.commit()
     variants = [
         {
-            "speech": f"Starting feeding, yummy in my tommy!",
+            "speech": f"Starting feeding, yummy in my tummy!",
             "text": f"Started feeding at {feed.start_at.strftime('%-I:%M %p')} for "
             f"{baby.name}",
         },
