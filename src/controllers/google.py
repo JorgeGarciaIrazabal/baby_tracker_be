@@ -200,7 +200,7 @@ def pooping(db: Session, g_request: dict, baby: Baby):
             "text": f"Poop Recorded",
         },
         {
-            "speech": f"uuggg stinky",
+            "speech": f"Clara, that was stinky",
             "text": f"Poop Recorded",
         },
         {
